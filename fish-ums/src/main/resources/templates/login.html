@@ -1,0 +1,63 @@
+<!DOCTYPE HTML>
+<html  lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.thymeleaf.org/thymeleaf-extras-shiro">
+<head>
+    <meta charset="UTF-8">
+    <title>鱼汤网用户管理系统-登录</title>
+    <link rel="stylesheet" th:href="@{/layui/css/layui.css}">
+    <script th:src="@{/jQuery/jQuery.js}"></script>
+    <script th:src="@{/layui/layui.js}"></script>
+    <script th:src="@{/js/modules.js}"></script>
+</head>
+<body>
+<div style="width: 30%;margin: 0 auto">
+    <form id="login-form" class="layui-form" lay-filter="login-form" th:action="@{/user/login}" method="post">
+        <div class="layui-row" style="margin: 120px 0 80px 0">
+            <div class="layui-col-md12">
+                <h1 style="text-align: center">鱼汤网用户管理系统</h1>
+            </div>
+        </div>
+        <div class="layui-row">
+            <div class="layui-col-md12 layui-form-item">
+                <label for="username" class="layui-form-label">用户姓名</label>
+                <div class="layui-input-block">
+                    <input type="text" id="username" name="username" required placeholder="请输入用户名" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+        </div>
+        <div class="layui-row">
+            <div class="layui-col-md12 layui-form-item">
+                <label for="password" class="layui-form-label">密码</label>
+                <div class="layui-input-block">
+                    <input type="password" id="password" name="password" required placeholder="请输入密码" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+        </div>
+        <div class="layui-row">
+            <div class="layui-col-md12 layui-form-item">
+                <div class="layui-input-block" style="margin-top: 20px">
+                    <button class="layui-btn">确认</button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<script type="text/javascript">
+    function login() {
+        $.ajax({
+            url: 'ums/user/login',
+            method: 'post',
+            contentType: 'application/x-www-form-urlencoded',
+            data: layui.form.val('login-form'),
+            success: function (res) {
+                if (res && res.code && res.code === '1') {
+                    layer.alert(res.msg ? res.msg : '登录失败, 请联系管理员')
+                    return
+                }
+                window.location.href = '/ums/user/home'
+            }
+        })
+    }
+</script>
+</body>
+</html>

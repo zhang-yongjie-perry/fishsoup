@@ -1,0 +1,164 @@
+docker镜像地址
+"https://docker.m.daocloud.io",
+"https://gvn471jb.mirror.aliyuncs.com",
+"https://dockerproxy.com",
+"https://docker.nju.edu.cn",
+"https://docker.mirrors.ustc.edu.cn"
+
+
+1. mysql
+版本 8.0
+端口 3306
+用户名：fish
+密码：123456
+
+docker run --name mysql -e MYSQL_ROOT_PASSWORD=root -p 3306:3306 -d mysql:8.0
+driver-class-name: com.mysql.cj.jdbc.Driver
+url: jdbc:mysql://localhost:3306/db_fish?autoReconnect=true&useSSL=false&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+
+
+2. oracle
+driver-class-name: oracle.jdbc.driver.OracleDriver
+url: jdbc:oracle:thin:@localhost:1521:FREE?autoReconnect=true&useSSL=false&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+
+# 拉取Oracle数据库的Docker镜像
+docker pull store/oracle/database-enterprise:12.2.0.1
+
+# 启动Oracle数据库容器
+docker run -d -p 1521:1521 --name oracle-db store/oracle/database-enterprise:12.2.0.1
+
+docker run -d -p 1521:1521 --name oracle-db -v D:\oracleDB\data:/opt/oracle/oradata container-registry.oracle.com/database/free:latest
+ 
+FREEPDB1
+
+80203354c9c2
+
+./opt/oracle/product/23c/dbhomeFree/bin/oraenv
+
+SELECT USERNAME, PASSWORD, ACCOUNT_STATUS FROM DBA_USERS WHERE USERNAME='SYSTEM';
+ 
+create  tablespace db_ry --表空间名
+datafile 'D:\oracle\oradata\ORCL\db_ry.dbf' --物理文件 表空间数据文件存放路径（这里路径选好）
+size 50m  --大小初始值
+autoextend on  --自动扩展
+next 50m maxsize 20480m  --每次扩展50m，最大为20480m
+extent management local;
+create user ry         --创建用户名 ry         
+identified by "orcl"     --创建密码 orcl
+default tablespace db_ry    --表空间  db_ry    
+temporary tablespace TEMP     --临时表空间（默认的）
+profile DEFAULT               --默认权限（下面给分配）
+quota unlimited on db_ry;      --该用户在 db_ry表空间里的配额不限
+grant all privileges to ry; -- 执行该语句给 ry用户授权，此时 该 用户就可以登录了
+
+
+create tablespace db_fish_soup datafile '/home/oracle/fishdb/fish.dbf' size 50m autoextend on next 50m maxsize 20480m extent management local;
+	
+grant all privileges to admin;
+
+create user C##admin identified by "123456" default tablespace db_fish_soup temporary tablespace TEMP profile DEFAULT quota unlimited on db_fish_soup;
+
+SELECT TABLESPACE_NAME FROM DBA_TABLESPACES;
+
+DROP TABLESPACE db_fish_soup INCLUDING CONTENTS AND DATAFILES CASCADE CONSTRAINTS;
+ 
+# 查看日志以确认数据库启动完成
+docker logs oracle-db
+
+
+# 拉取镜像(默认下载oracle-12c最新版本的镜像)*
+ 
+docker pull truevoly/oracle-12c
+
+ 
+ 
+# 创建oracle-12c容器并启动
+ 
+docker run -d -p 2122:22 -p 9090:8080 -p 1521:1521 -v /soft/oracle/:/u01/app/oracle/ --name oracle-12c truevoly/oracle-12c
+ 
+ 
+# 查看日志
+docker logs -f oracle-12c
+ 
+ 
+# 这里启动可能会报错，因为docker容器挂载的目录没权限，
+# 进入/soft，为oracle赋权限，根据日志报错，为其创建好文件夹和文件。
+cd /soft
+mkdir oracle
+cd oracle
+mkdir cfgtoollogs
+cd cfgtoollogs/
+mkdir dbca
+cd dbca
+touch silent.log_2024-01-03_02-31-14-AM
+mkdir xe
+cd /soft
+chmod -R 777 oracle
+ 
+ 
+ 
+# 再次启动docker容器
+docker start oracle-12c
+
+
+3. redis
+
+
+4. maxkb
+docker volume create maxkb-data
+docker run -d --name maxkb -p 8088:8080 -v maxkb-data:/data maxkb/maxkb:latest
+
+5. mongodb
+docker volume create mongo-data
+docker run -d --name mongodb -p 27017:27017 -v mongo-data:/data/db mongo:latest
+
+6. nginx
+docker run --name nginx -d -p 80:80 -v D:\work\production\nginx\conf:/etc/nginx/conf.d -v D:\work\production\nginx\html:/usr/share/nginx/html -v D:\work\production\nginx\logs:/var/log/nginx nginx:latest
+
+docker run --name nginx-test -d -p 8081:80 nginx:latest
+
+重新加载配置
+nginx -s reload
+
+7. nacos
+docker run -p 8848:8848 --name nacos -d nacos/nacos-server
+docker cp nacos:/home/nacos/logs/ D:\work\production\nacos
+docker cp nacos:/home/nacos/conf/ D:\work\production\nacos
+docker cp nacos:/home/nacos/data/ D:\work\production\nacos
+
+docker rm -f nacos
+
+docker run -d --name nacos -p 8848:8848 -p 9848:9848 -p 9849:9849 -e MODE=standalone -v D:\work\production\nacos\logs:/home/nacos/logs -v D:\work\production\nacos\conf:/home/nacos/conf nacos/nacos-server:latest
+
+以下是实现容器互通
+docker ps 查看启动的docker容器
+
+docker network ls 查看当前网络
+
+docker network create [自己定义的网络名称] 创建新网桥网络
+docker network ls 再次查看网络，看是否创建成功
+
+docker network connect [自己定义的网络名称] [mysql的id]
+docker network connect [自己定义的网络名称] [nacos的id]
+
+docker network inspect [自己定义的网络名称] 查看两个容器是否被添加到同一个网桥网络
+
+# 查看mysql容器ip地址 配置到nacos
+docker inspect mysql
+
+8. fish-web
+docker run -d --name fish-web -p 9099:9099 -e MYSQL_ADDR=172.18.0.2 -e MONGO_DB_ADDR=172.18.0.4 -e NACOS_SERVER_ADDR=172.18.0.3 -v D:\work\production\fish\server\fish-web\docker\logs:/app/logs fish-web:1.0
+
+9. fish-das
+docker run -d --name fish-das -p 9098:9098 -e MONGO_DB_ADDR=172.18.0.4 -e NACOS_SERVER_ADDR=172.18.0.3 -v D:\work\production\fish\server\fish-das\docker\logs:/app/logs fish-das:1.0
+
+10. 从阿里镜像仓库down镜像
+docker pull crpi-gprv8r1fcnlyohht.cn-qingdao.personal.cr.aliyuncs.com/common-fish/fish:fish-das-1.0
+docker pull crpi-gprv8r1fcnlyohht.cn-qingdao.personal.cr.aliyuncs.com/common-fish/fish:fish-web-1.0
+docker pull crpi-gprv8r1fcnlyohht.cn-qingdao.personal.cr.aliyuncs.com/common-fish/fish:nginx-1.27.2
+docker pull crpi-gprv8r1fcnlyohht.cn-qingdao.personal.cr.aliyuncs.com/common-fish/fish:mongo-8.0
+docker pull crpi-gprv8r1fcnlyohht.cn-qingdao.personal.cr.aliyuncs.com/common-fish/fish:nacos-server-v2.4.3
+docker pull crpi-gprv8r1fcnlyohht.cn-qingdao.personal.cr.aliyuncs.com/common-fish/fish:mysql-8.0
+
+11. fish-chat
+docker run -d --name fish-chat -p 9000:9000 -e MYSQL_ADDR=172.18.0.2 fish-chat:1.0

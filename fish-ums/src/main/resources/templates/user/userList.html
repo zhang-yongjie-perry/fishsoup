@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html th:replace="~{ frame :: common_html(~{::title}, ~{::#content-body}, ~{::script}) }">
+<title>鱼汤网用户管理系统</title>
+<div id="content-body" class="layui-body" style="width: 100%;height: 100%;left: 0">
+    <!-- 内容主体区域 -->
+    <div style="padding: 15px;">
+        <div class="layui-form" style="margin-bottom: 20px">
+            <label for="username" class="layui-form-label">用户姓名</label>
+            <div class="layui-input-inline">
+                <input type="text" id="username" name="username" required placeholder="请输入用户名" autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-input-inline" style="margin-left: 20px">
+                <button id="search-input" class="layui-btn" onclick="reload()">确认</button>
+                <button type="reset" class="layui-btn layui-btn-primary" onclick="reset()">重置</button>
+            </div>
+        </div>
+        <table class="layui-hide" id="user-list"></table>
+    </div>
+</div>
+<script th:src="@{/js/tools.js}"></script>
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" onclick="registerUser()">
+            注册新用户
+        </button>
+    </div>
+</script>
+<script type="text/javascript" th:inline="javascript">
+    $(function (){
+        let options = {
+            tableId: 'user-list',
+            toolbarId: 'toolbar',
+            url: '/ums/user/list',
+            method: 'post',
+            cols: [
+                {field:'id', title: 'ID', sort: true, hide: true}
+                ,{field:'username', title: '用户名'}
+                ,{field:'type', width: 100, title: '用户类型'}
+                ,{field:'sex', width: 80, title: '性别', sort: true}
+                ,{field:'mobilePhone', title: '电话', sort: true}
+                ,{field:'email', title: '邮箱', sort: true}
+                ,{field:'onlineStatus', width: 110, title: '在线状态', sort: true}
+                ,{field:'accountStatus', width: 110, title: '账号状态', sort: true}
+                ,{field:'createBy', title: '账号创建人', sort: true}
+                ,{field:'createTime', title: '账号创建时间', sort: true}
+                ,{field:'lastLoginTime', title: '最后登录时间', sort: true}
+            ],
+            page: true
+        }
+        $initTable(options)
+    })
+
+    function reload() {
+        $reload({
+            tableId: 'user-list',
+            params: {
+                'username': $("#username").val()
+            },
+            page: 1,
+            limit: 10
+        })
+    }
+
+    function reset() {
+        $("#username").val('')
+        reload()
+    }
+
+    function registerUser() {
+        layer.open({
+            type: 2,
+            title: '注册新用户',
+            area: ['700px', '600px'],
+            shadeClose: true,
+            content: ['/ums/user/register'],
+            end: function(){
+                reload();
+            }
+        })
+    }
+</script>
+</html>

@@ -1,0 +1,32 @@
+server:
+  port: ${FISH_WEB_PORT:9098}
+  servlet:
+    context-path: /das
+
+spring:
+
+  data:
+    mongodb:
+      uri: mongodb://admin:123456@${MONGO_DB_ADDR:localhost}:27017/fish?authSource=fish
+
+  application:
+    name: fish-das
+
+  threads:
+    virtual:
+      enabled: true
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER_ADDR}:8848
+
+logging:
+  config: classpath:logback.xml
+  level:
+    root: WARN
+    com.fishsoup.fishdas: DEBUG
+#  file:
+#    path: ./logs
+#  pattern:
+#    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36}: %msg%n"
+#    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36}: %msg%n"

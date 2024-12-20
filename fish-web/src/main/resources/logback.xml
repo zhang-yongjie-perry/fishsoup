@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- 定义全局属性 -->
+    <property name="LOG_HOME" value="./logs"/> <!-- 日志文件存储路径 -->
+    <property name="APP_NAME" value="fish-web"/> <!-- 应用名称，用于日志文件名中 -->
+
+    <!-- 控制台Appender配置 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36}: %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 文件Appender配置，不支持滚动 -->
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${LOG_HOME}/${APP_NAME}.log</file>
+        <append>true</append> <!-- 追加到文件末尾 -->
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36}: %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 滚动文件Appender配置，基于时间和大小 -->
+    <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/${APP_NAME}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- 文件名模式，包含日期和索引 -->
+            <fileNamePattern>${LOG_HOME}/${APP_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+            <!-- 单个日志文件的大小限制 -->
+            <maxFileSize>100MB</maxFileSize>
+            <!-- 保留的历史日志文件数量 -->
+            <maxHistory>30</maxHistory>
+            <!-- 日志文件总大小限制 -->
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!-- 错误日志Appender配置，仅记录ERROR级别日志 -->
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/${APP_NAME}_error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/${APP_NAME}_error.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!-- Logger配置，为特定包或类设置日志级别和Appender -->
+    <logger name="com.fishsoup.fishdas" level="ERROR"/>
+    <logger name="org.springframework" level="INFO"/> <!-- 设置Spring框架的日志级别为INFO -->
+
+    <!-- Root Logger配置，全局日志级别和Appender -->
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="ROLLING"/>
+        <appender-ref ref="ERROR_FILE"/>
+    </root>
+
+</configuration>

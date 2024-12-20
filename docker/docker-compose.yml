@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:1.27.2
+    container_name: nginx_server
+    environment:
+      - TZ=Asia/Shanghai
+    ports:
+      - "8080:80"
+    networks:
+      inner_network:
+        ipv4_address: 172.20.0.2
+    volumes:
+      - /home/nginx/conf:/etc/nginx/conf.d
+      - /home/nginx/html:/usr/share/nginx/html
+      - /home/nginx/logs:/var/log/nginx
+    restart: always
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_server
+    environment:
+      MYSQL_ROOT_PASSWORD: 15269603184_Vae
+    #ports:
+    #  - "3306:3306"
+    networks:
+      inner_network:
+        ipv4_address: 172.20.0.3
+    volumes:
+      - /home/mysql/data:/var/lib/mysql
+    restart: always
+
+  mongodb:
+    image: mongodb:8.0
+    container_name: mongodb_server
+    networks:
+      inner_network:
+        ipv4_address: 172.20.0.4
+    volumes:
+      - /home/mongodb/data:/data/db
+    restart: always
+
+  nacos:
+    image: nacos-server:2.4.3
+    container_name: nacos_server
+    depends_on:
+      - mysql
+    environment:
+      - SPRING_DATASOURCE_PLATFORM=mysql
+      - MYSQL_SERVICE_HOST=172.20.0.3
+      - MYSQL_SERVICE_PORT=3306
+      - MYSQL_SERVICE_USER=root
+      - MYSQL_SERVICE_PASSWORD=15269603184_Vae
+      - MYSQL_SERVICE_DB_NAME=nacos
+      - MYSQL_SERVICE_DB_PARAM=characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&allowMultiQueries=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+    #ports:
+    #  - "8848:8848"
+    #  - "9848:9848"
+    #  - "9849:9849"
+    networks:
+      inner_network:
+        ipv4_address: 172.20.0.5
+    volumes:
+      - /home/nacos/logs:/home/nacos/logs
+      - /home/nacos/conf:/home/nacos/conf
+    restart: always
+
+  fish_web:
+    image: fish-web:1.0
+    container_name: fish_web
+    depends_on:
+      - mysql
+      - mongodb
+      - nacos
+    environment:
+      MYSQL_ADDR: 172.20.0.3
+      MONGO_DB_ADDR: 172.20.0.4
+      NACOS_SERVER_ADDR: 172.20.0.5
+    #ports:
+    #  - "9099:9099"
+    networks:
+      inner_network:
+        ipv4_address: 172.20.0.6
+    volumes:
+      - /home/fishsoup/fish-web/logs:/app/logs
+    restart: always
+
+  fish_das:
+    image: fish-das:1.0
+    container_name: fish_das
+    depends_on:
+      - mongodb
+      - nacos
+    environment:
+      MONGO_DB_ADDR: 172.20.0.4
+      NACOS_SERVER_ADDR: 172.20.0.5
+    networks:
+      inner_network:
+        ipv4_address: 172.20.0.7
+    volumes:
+      - /home/fishsoup/fish-das/logs:/app/logs
+    restart: always
+
+networks:
+  inner_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
