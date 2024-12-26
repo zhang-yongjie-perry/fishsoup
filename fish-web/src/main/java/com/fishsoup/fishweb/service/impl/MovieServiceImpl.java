@@ -3,17 +3,17 @@ package com.fishsoup.fishweb.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fishsoup.entity.exception.BusinessException;
 import com.fishsoup.entity.movie.TvMovie;
 import com.fishsoup.fishweb.annotation.FootstepLog;
 import com.fishsoup.fishweb.domain.Footstep;
-import com.fishsoup.fishweb.exception.BusinessException;
 import com.fishsoup.fishweb.feignService.DasFeignService;
 import com.fishsoup.fishweb.mapper.FootstepMapper;
 import com.fishsoup.fishweb.service.MovieService;
-import com.fishsoup.fishweb.util.DateUtils;
-import com.fishsoup.fishweb.util.SecurityUtils;
-import com.fishsoup.fishweb.util.StringUtils;
-import com.fishsoup.utils.CollectionUtils;
+import com.fishsoup.fishweb.util.UserUtils;
+import com.fishsoup.util.CollectionUtils;
+import com.fishsoup.util.DateUtils;
+import com.fishsoup.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -73,7 +73,7 @@ public class MovieServiceImpl implements MovieService {
         }
         if (mv.getStatus() == 1) {
             QueryWrapper<Footstep> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("user_id", SecurityUtils.getUserId());
+            queryWrapper.eq("user_id", UserUtils.getUserId());
             queryWrapper.eq("type", MOVIE.getCode());
             queryWrapper.eq("today", DateUtils.now(DateUtils.YYYY_MM_DD));
             queryWrapper.eq("correlation_id", id);

@@ -1,9 +1,9 @@
 package com.fishsoup.fishweb.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.fishsoup.entity.exception.BusinessException;
+import com.fishsoup.entity.http.ResponseResult;
 import com.fishsoup.entity.movie.TvMovie;
-import com.fishsoup.fishweb.exception.BusinessException;
-import com.fishsoup.fishweb.http.ResponseResult;
 import com.fishsoup.fishweb.service.MovieService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

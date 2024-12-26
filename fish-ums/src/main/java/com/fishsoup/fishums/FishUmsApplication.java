@@ -1,11 +1,13 @@
 package com.fishsoup.fishums;
 
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
+@EnableFeignClients
+@EnableDiscoveryClient
 @SpringBootApplication
-@MapperScan(basePackages = "com.fishsoup.fishums.mapper")
 public class FishUmsApplication {
 
     public static void main(String[] args) {

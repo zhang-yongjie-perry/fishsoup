@@ -1,0 +1,64 @@
+server:
+  port: ${FISH_GATEWAY_PORT:9000}
+
+logging:
+  config: classpath:logback.xml
+  level:
+    root: WARN
+    com.fishsoup.fishweb: DEBUG
+
+spring:
+  application:
+    name: fish-gateway
+  data:
+    redis:
+      url: redis://${REDIS_PASSWORD:123456}@${REDIS_ADDR:localhost}:6379/0
+      # 连接超时时间 3000 毫秒
+      connect-timeout: 3000
+      # 命令执行超时时间 3000 毫秒
+      timeout: 3000
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER_ADDR:localhost}:8848
+    gateway:
+#      globalcors:
+#        cors-configurations:
+#          '[/**]':
+#            allowedOrigins: "https://localhost:9090"
+#            allowedMethods:
+#              - GET
+#              - POST
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: fish_user_route1
+          uri: lb://fish-user
+          predicates:
+            - Path=/user/auth/**
+
+        - id: fish_user_route2
+          uri: lb://fish-user
+          predicates:
+            - Path=/user/**
+            - Header=Authorization, ^Bearer .+
+
+        - id: fish_web_route1
+          uri: lb://fish-web
+          predicates:
+            - Path=/web/image/download/**
+
+        - id: fish_web_route2
+          uri: lb://fish-web
+          predicates:
+            - Path=/web/**
+            - Header=Authorization, ^Bearer .+
+
+        - id: fish_chat_route
+          uri: lb:ws://fish-chat-service
+          predicates:
+            - Path=/chat/ws
+            - Query=Authorization, ^Bearer.+
+          filters:
+            - RemoveRequestParameter=Authorization

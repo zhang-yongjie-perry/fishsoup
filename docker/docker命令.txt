@@ -102,7 +102,16 @@ docker start oracle-12c
 
 
 3. redis
+# 生产环境
+docker run -d --name redis -p 6379:6379 -v /root/RedisData:/data --restart unless-stopped redis --appendonly yes redis:latest
 
+# 开发环境不挂载卷, 不持久化
+docker run -d --name redis -p 6379:6379 redis:latest
+
+# 设置密码
+docker exec -it my-redis redis-cli
+config set requirepass 123456
+docker-cli -h localhost -p 6379 -a 123456
 
 4. maxkb
 docker volume create maxkb-data
@@ -162,3 +171,20 @@ docker pull crpi-gprv8r1fcnlyohht.cn-qingdao.personal.cr.aliyuncs.com/common-fis
 
 11. fish-chat
 docker run -d --name fish-chat -p 9000:9000 -e MYSQL_ADDR=172.18.0.2 fish-chat:1.0
+
+12. seata-server
+docker pull seataio/seata-server
+
+运行
+docker run --name seata -p 8091:8091 -d seataio/seata-server:latest
+
+复制文件
+docker cp seata:/seata-server/resources D:\work\production\seata
+
+根据application.example.yml修改配置文件application.yml
+挂载配置文件后运行容器
+docker run --name seata -p 7091:7091 -p 8091:8091 -e SEATA_IP=172.21.48.1 --network fish-network -v D:\work\production\seata\resources:/seata-server/resources -e MYSQL_ADDR=172.18.0.2 -e NACOS_SERVER_ADDR=172.18.0.3 -d seataio/seata-server:latest
+
+将seata加入fish-netwrok网络中
+docker network connect fish-network 8f184a89d2200668b390475f5a1d76b11a06a98f5bf6b946f65025d0e1a3b23c
+

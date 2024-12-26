@@ -3,7 +3,8 @@ package com.fishsoup.fishdas.service.impl;
 import com.fishsoup.entity.pic.Picture;
 import com.fishsoup.fishdas.network.OkHttpUtils;
 import com.fishsoup.fishdas.service.PictureService;
-import com.fishsoup.utils.DateUtils;
+import com.fishsoup.util.DateUtils;
+import com.fishsoup.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Response;
@@ -38,6 +39,9 @@ public class PictureServiceImpl implements PictureService {
     @Override
     public boolean crawl8kPic(int pageNum) {
         String response = okHttpUtils.get(pageNum == 0 ? SEARCH_PAGE_8K : String.format(SEARCH_PAGE_8K.concat("%d"), pageNum), HEADERS, null);
+        if (!StringUtils.hasText(response)) {
+            return false;
+        }
         Document htmlDoc = Jsoup.parse(response);
         Elements pics8k = htmlDoc.getElementsByClass("item-img");
         List<Picture> pic8ks = mongoTemplate.find(new Query(Criteria.where("type").is(0)), Picture.class);

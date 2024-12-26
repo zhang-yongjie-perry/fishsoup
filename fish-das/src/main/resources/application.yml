@@ -1,5 +1,5 @@
 server:
-  port: ${FISH_WEB_PORT:9098}
+  port: ${FISH_DAS_PORT:9003}
   servlet:
     context-path: /das
 
@@ -18,7 +18,7 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: ${NACOS_SERVER_ADDR}:8848
+        server-addr: ${NACOS_SERVER_ADDR:localhost}:8848
 
 logging:
   config: classpath:logback.xml

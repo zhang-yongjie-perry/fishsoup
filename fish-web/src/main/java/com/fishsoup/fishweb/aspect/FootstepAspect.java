@@ -2,14 +2,14 @@ package com.fishsoup.fishweb.aspect;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fishsoup.entity.movie.TvMovie;
+import com.fishsoup.enums.YesNoEnum;
 import com.fishsoup.fishweb.annotation.FootstepLog;
 import com.fishsoup.fishweb.domain.Creation;
 import com.fishsoup.fishweb.domain.Footstep;
 import com.fishsoup.fishweb.enums.ArtworkTypeEnum;
-import com.fishsoup.fishweb.enums.YesNoEnum;
 import com.fishsoup.fishweb.mapper.FootstepMapper;
-import com.fishsoup.fishweb.util.DateUtils;
-import com.fishsoup.fishweb.util.SecurityUtils;
+import com.fishsoup.fishweb.util.UserUtils;
+import com.fishsoup.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -43,8 +43,8 @@ public class FootstepAspect {
         if (annotation == null) {
             return result;
         }
-        String userId = SecurityUtils.getUserId();
-        String loginName = SecurityUtils.getLoginName();
+        String userId = UserUtils.getUserId();
+        String loginName = UserUtils.getLoginName();
         scheduledExecutorService.schedule(() -> {
             ArtworkTypeEnum type = annotation.value();
             String correlationId = (String) joinPoint.getArgs()[0];

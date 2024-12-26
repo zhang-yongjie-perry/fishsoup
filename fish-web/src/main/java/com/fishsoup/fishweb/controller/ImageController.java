@@ -1,9 +1,9 @@
 package com.fishsoup.fishweb.controller;
 
-import com.fishsoup.fishweb.exception.BusinessException;
+import com.fishsoup.entity.exception.BusinessException;
 import com.fishsoup.fishweb.http.UploadResult;
 import com.fishsoup.fishweb.service.ImageService;
-import com.fishsoup.fishweb.util.StringUtils;
+import com.fishsoup.util.StringUtils;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;

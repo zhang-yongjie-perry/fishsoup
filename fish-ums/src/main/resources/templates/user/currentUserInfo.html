@@ -51,21 +51,13 @@
 </div>
 <script type="text/javascript" th:inline="javascript">
     function resetPwd() {
-        layer.prompt({title: '请输入新密码', formType: 1}, function(pass, index){
-            $.ajax({
-                url: '/ums/user/update/password',
-                method: 'post',
-                data: pass,
-                success: function (res) {
-                    if (res && res.code === '1') {
-                        layer.alert('密码重置失败, 请稍后重试')
-                        return
-                    }
-                    layer.msg('修改成功, 稍后请重新登录')
-                    layer.close(index)
-                }
-            })
-        });
+        layer.open({
+            type: 2,
+            title: '密码重置',
+            area: ['700px', '400px'],
+            shadeClose: true,
+            content: ['/ums/user/resetPassword'],
+        })
     }
 </script>
 </html>

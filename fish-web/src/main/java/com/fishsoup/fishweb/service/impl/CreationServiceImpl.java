@@ -1,13 +1,13 @@
 package com.fishsoup.fishweb.service.impl;
 
+import com.fishsoup.entity.exception.BusinessException;
 import com.fishsoup.fishweb.annotation.FootstepLog;
 import com.fishsoup.fishweb.domain.Creation;
 import com.fishsoup.fishweb.enums.ArtworkTypeEnum;
-import com.fishsoup.fishweb.exception.BusinessException;
 import com.fishsoup.fishweb.service.CreationService;
-import com.fishsoup.fishweb.util.DateUtils;
-import com.fishsoup.fishweb.util.SecurityUtils;
-import com.fishsoup.fishweb.util.StringUtils;
+import com.fishsoup.fishweb.util.UserUtils;
+import com.fishsoup.util.DateUtils;
+import com.fishsoup.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -39,7 +39,7 @@ public class CreationServiceImpl implements CreationService {
         if (!StringUtils.hasText(creation.getSummary())) {
             throw new BusinessException("请输入概述内容");
         }
-        creation.setUpdateBy(SecurityUtils.getLoginName());
+        creation.setUpdateBy(UserUtils.getLoginName());
         creation.setUpdateTime(DateUtils.now());
         creation.setTime(creation.getUpdateTime());
         if (StringUtils.hasText(creation.getId())) {

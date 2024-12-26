@@ -1,13 +1,11 @@
 package com.fishsoup.entity.movie;
 
-import com.fishsoup.utils.StringUtils;
+import com.fishsoup.util.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-import org.springframework.data.mongodb.core.mapping.Field;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 @Data

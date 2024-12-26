@@ -1,7 +1,7 @@
 package com.fishsoup.fishweb.service;
 
+import com.fishsoup.entity.exception.BusinessException;
 import com.fishsoup.fishweb.domain.Creation;
-import com.fishsoup.fishweb.exception.BusinessException;
 
 import java.util.List;
 

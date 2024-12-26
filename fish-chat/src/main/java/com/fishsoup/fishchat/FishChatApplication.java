@@ -1,9 +1,10 @@
 package com.fishsoup.fishchat;
 
-import com.fishsoup.fishchat.netty.NettyServer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
+@EnableDiscoveryClient
 @SpringBootApplication
 public class FishChatApplication {
 

@@ -15,6 +15,8 @@
         <module>fish-ums</module>
         <module>fish-common</module>
         <module>fish-chat</module>
+        <module>fish-user</module>
+        <module>fish-gateway</module>
     </modules>
 
     <properties>
@@ -28,7 +30,7 @@
         <!-- spring-cloud-alibaba -->
         <spring-cloud-alibaba.version>2023.0.1.0</spring-cloud-alibaba.version>
         <!-- spring-cloud -->
-        <spring-cloud.version>2023.0.4</spring-cloud.version>
+        <spring-cloud.version>2023.0.1</spring-cloud.version>
         <jsoup.version>1.18.1</jsoup.version>
         <netty.version>4.1.115.Final</netty.version>
         <okhttp.version>4.12.0</okhttp.version>
@@ -44,6 +46,7 @@
         <guava.version>33.3.1-jre</guava.version>
         <shiro.version>2.0.2</shiro.version>
         <thymeleaf-shiro.version>2.0.0</thymeleaf-shiro.version>
+        <redisson.version>3.40.1</redisson.version>
     </properties>
 
     <dependencyManagement>
@@ -130,6 +133,11 @@
                 <groupId>com.github.theborakompanioni</groupId>
                 <artifactId>thymeleaf-extras-shiro</artifactId>
                 <version>${thymeleaf-shiro.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>${redisson.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

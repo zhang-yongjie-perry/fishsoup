@@ -2,7 +2,7 @@ package com.fishsoup.fishweb.service.impl;
 
 import com.fishsoup.fishweb.domain.HotNews;
 import com.fishsoup.fishweb.service.HotNewsService;
-import com.fishsoup.fishweb.util.StringUtils;
+import com.fishsoup.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

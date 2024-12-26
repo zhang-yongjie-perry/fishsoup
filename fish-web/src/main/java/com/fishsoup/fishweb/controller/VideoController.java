@@ -1,7 +1,6 @@
 package com.fishsoup.fishweb.controller;
 
-import com.fishsoup.fishweb.http.ResponseResult;
-import org.springframework.security.access.prepost.PreAuthorize;
+import com.fishsoup.entity.http.ResponseResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class VideoController {
 
     @GetMapping("/list")
-    @PreAuthorize("hasAuthority('fish:video:view')")
+//    @PreAuthorize("hasAuthority('fish:video:view')")
     public ResponseResult listVideos() {
         return ResponseResult.success();
     }

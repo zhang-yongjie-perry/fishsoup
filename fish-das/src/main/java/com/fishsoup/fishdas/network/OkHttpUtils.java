@@ -1,6 +1,6 @@
 package com.fishsoup.fishdas.network;
 
-import com.fishsoup.utils.StringUtils;
+import com.fishsoup.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;

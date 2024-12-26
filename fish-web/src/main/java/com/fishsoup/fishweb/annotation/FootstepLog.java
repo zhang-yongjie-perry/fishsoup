@@ -1,7 +1,6 @@
 package com.fishsoup.fishweb.annotation;
 
 import com.fishsoup.fishweb.enums.ArtworkTypeEnum;
-import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

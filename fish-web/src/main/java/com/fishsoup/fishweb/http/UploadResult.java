@@ -1,6 +1,6 @@
 package com.fishsoup.fishweb.http;
 
-import com.fishsoup.fishweb.enums.StatusEnum;
+import com.fishsoup.enums.StatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

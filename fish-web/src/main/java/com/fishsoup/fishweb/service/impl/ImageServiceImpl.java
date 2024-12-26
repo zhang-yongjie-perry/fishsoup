@@ -1,9 +1,9 @@
 package com.fishsoup.fishweb.service.impl;
 
-import com.fishsoup.fishweb.exception.BusinessException;
+import com.fishsoup.entity.exception.BusinessException;
 import com.fishsoup.fishweb.service.ImageService;
-import com.fishsoup.fishweb.util.JWTUtils;
-import com.fishsoup.fishweb.util.StringUtils;
+import com.fishsoup.util.JWTUtils;
+import com.fishsoup.util.StringUtils;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
@@ -20,7 +20,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.fishsoup.fishweb.util.StringUtils.PACKAGE_SEPARATOR_CHAR;
+import static com.fishsoup.util.StringUtils.PACKAGE_SEPARATOR_CHAR;
+
 
 @Service
 @RequiredArgsConstructor

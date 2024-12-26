@@ -23,6 +23,12 @@
         <button class="layui-btn layui-btn-sm" onclick="registerUser()">
             注册新用户
         </button>
+        <button class="layui-btn layui-btn-sm layui-btn-primary" onclick="lockAccount()">
+            锁定
+        </button>
+        <button class="layui-btn layui-btn-sm layui-btn-primary" onclick="unlockAccount()">
+            解锁
+        </button>
     </div>
 </script>
 <script type="text/javascript" th:inline="javascript">
@@ -33,17 +39,18 @@
             url: '/ums/user/list',
             method: 'post',
             cols: [
-                {field:'id', title: 'ID', sort: true, hide: true}
-                ,{field:'username', title: '用户名'}
-                ,{field:'type', width: 100, title: '用户类型'}
-                ,{field:'sex', width: 80, title: '性别', sort: true}
-                ,{field:'mobilePhone', title: '电话', sort: true}
-                ,{field:'email', title: '邮箱', sort: true}
-                ,{field:'onlineStatus', width: 110, title: '在线状态', sort: true}
-                ,{field:'accountStatus', width: 110, title: '账号状态', sort: true}
-                ,{field:'createBy', title: '账号创建人', sort: true}
-                ,{field:'createTime', title: '账号创建时间', sort: true}
-                ,{field:'lastLoginTime', title: '最后登录时间', sort: true}
+                {type: 'checkbox', fixed: 'left'},
+                {field: 'id', title: 'ID', sort: true, hide: true}
+                , {field: 'username', title: '用户名'}
+                , {field: 'type', width: 100, title: '用户类型'}
+                , {field: 'sex', width: 80, title: '性别', sort: true}
+                , {field: 'mobilePhone', title: '电话', sort: true}
+                , {field: 'email', title: '邮箱', sort: true}
+                , {field: 'onlineStatus', width: 110, title: '在线状态', sort: true}
+                , {field: 'accountStatus', width: 110, title: '账号状态', sort: true}
+                , {field: 'createBy', title: '账号创建人', sort: true}
+                , {field: 'createTime', title: '账号创建时间', sort: true}
+                , {field: 'lastLoginTime', title: '最后登录时间', sort: true}
             ],
             page: true
         }
@@ -77,6 +84,66 @@
                 reload();
             }
         })
+    }
+
+    function lockAccount() {
+        let selectedData = layui.table.checkStatus("user-list").data;
+        if (selectedData.length === 0) {
+            layer.msg('请选择一个用户')
+            return
+        }
+        if (selectedData.length !== 1) {
+            layer.msg('只能选择一个用户')
+            return
+        }
+        layer.confirm('确认锁定选中的用户?', {
+            btn: ['确认', '关闭']
+        }, function (index) {
+            $.ajax({
+                url: '/ums/user/lock',
+                method: 'post',
+                contentType: 'application/json',
+                data: JSON.stringify(selectedData[0]),
+                success: function (res) {
+                    if (res.code === '1') {
+                        layer.msg('操作失败: ' + res.msg)
+                        layer.close(index)
+                        return
+                    }
+                    layer.msg('操作成功')
+                    layer.close(index)
+                    reload()
+                },
+            })
+        });
+    }
+
+    function unlockAccount() {
+        let selectedData = layui.table.checkStatus("user-list").data;
+        if (selectedData.length === 0) {
+            layer.msg('请选择至少一个用户')
+            return
+        }
+        layer.confirm('确认解锁选中的用户?', {
+            btn: ['确认', '关闭']
+        }, function (index) {
+            $.ajax({
+                url: '/ums/user/unlock',
+                method: 'post',
+                contentType: 'application/json',
+                data: JSON.stringify(selectedData),
+                success: function (res) {
+                    if (res.code === '1') {
+                        layer.msg('操作失败: ' + res.msg)
+                        layer.close(index)
+                        return
+                    }
+                    layer.msg('操作成功')
+                    layer.close(index)
+                    reload()
+                }
+            })
+        });
     }
 </script>
 </html>

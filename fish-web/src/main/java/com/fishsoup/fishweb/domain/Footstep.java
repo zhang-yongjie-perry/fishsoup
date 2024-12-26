@@ -1,13 +1,12 @@
 package com.fishsoup.fishweb.domain;
 
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fishsoup.enums.YesNoEnum;
 import com.fishsoup.fishweb.enums.ArtworkTypeEnum;
-import com.fishsoup.fishweb.enums.YesNoEnum;
-import com.fishsoup.fishweb.util.DateUtils;
+import com.fishsoup.util.DateUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

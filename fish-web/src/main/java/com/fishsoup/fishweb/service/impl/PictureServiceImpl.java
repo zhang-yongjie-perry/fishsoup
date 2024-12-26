@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fishsoup.entity.pic.Picture;
 import com.fishsoup.fishweb.feignService.DasFeignService;
 import com.fishsoup.fishweb.service.PictureService;
-import com.fishsoup.fishweb.util.StringUtils;
+import com.fishsoup.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;

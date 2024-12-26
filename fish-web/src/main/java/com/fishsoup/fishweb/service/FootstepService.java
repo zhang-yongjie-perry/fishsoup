@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.fishsoup.fishweb.domain.Footstep;
 import com.fishsoup.fishweb.enums.ArtworkTypeEnum;
 
+
 @SuppressWarnings("all")
 public interface FootstepService {
 

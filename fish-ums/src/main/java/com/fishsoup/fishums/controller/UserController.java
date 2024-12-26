@@ -1,10 +1,13 @@
 package com.fishsoup.fishums.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.fishsoup.entity.exception.BusinessException;
 import com.fishsoup.entity.http.ResponseResult;
-import com.fishsoup.fishums.domain.User;
-import com.fishsoup.fishums.exception.BusinessException;
+import com.fishsoup.entity.user.User;
+import com.fishsoup.enums.ResponseCodeEnum;
+import com.fishsoup.fishums.feignService.UserFeignService;
 import com.fishsoup.fishums.service.UserService;
+import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -13,23 +16,22 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Objects;
+
 @Controller
 @RequestMapping("/user")
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserService userService;
+    private final UserFeignService userFeignService;
 
-    @ResponseBody
-    @GetMapping("/hello")
-    public String hello() {
-        return "hello world";
-    }
+    private final UserService userService;
 
     @ResponseBody
     @PostMapping
     public ResponseResult register(User user) throws BusinessException {
-        userService.register(user);
+        userFeignService.register(user);
         return ResponseResult.success(user);
     }
 
@@ -38,10 +40,20 @@ public class UserController {
         return "user/register";
     }
 
+    @GetMapping("/resetPassword")
+    public String resetPasswordView() {
+        return "user/resetPassword";
+    }
+
     @ResponseBody
     @PostMapping("/update/password")
-    public ResponseResult updatePassword(@RequestBody String newPassword) {
-        userService.updatePassword(newPassword);
+    public ResponseResult updatePassword(@RequestBody User user) throws BusinessException {
+        User principal = (User) SecurityUtils.getSubject().getPrincipal();
+        user.setUsername(principal.getUsername());
+        ResponseResult responseResult = userFeignService.updatePassword(user);
+        if (Objects.equals(ResponseCodeEnum.FAILURE.getCode(), responseResult.getCode())) {
+            throw new BusinessException(responseResult.getMsg());
+        }
         return ResponseResult.success();
     }
 
@@ -84,34 +96,46 @@ public class UserController {
     @ResponseBody
     @PostMapping("/list")
     public IPage<User> pageUsers(User user, @RequestParam("page") int page, @RequestParam("limit") int limit) {
-        return userService.pageUsers(user, page, limit);
+        return userFeignService.pageUsers(user, page, limit);
     }
 
     @GetMapping("/currentUserInfo")
-    public String currentUserInfoView(ModelMap map) throws BusinessException {
+    public String currentUserInfoView(ModelMap map) {
         User currnetUser = (User) SecurityUtils.getSubject().getPrincipal();
-        map.put("user", userService.selectOneByUsername(currnetUser.getUsername()));
+        map.put("user", userFeignService.findUserByUsername(currnetUser.getUsername()));
         return "user/currentUserInfo";
     }
 
     @PostMapping("/update")
-    public String saveUser(User user, ModelMap map) throws BusinessException {
-        userService.updateUser(user);
-        map.put("user", userService.selectOneByUsername(user.getUsername()));
+    public String saveUser(User user, ModelMap map) {
+        userFeignService.saveUser(user);
+        map.put("user", userFeignService.findUserByUsername(user.getUsername()));
         return "user/currentUserInfo";
     }
 
+    /**
+     * 用户锁定
+     *
+     * @param user 被锁定的用户, 需有userId/username
+     * @return 操作结果
+     */
     @ResponseBody
-    @GetMapping("/test/arrayList/{num}")
-    public ResponseResult testArrayList(@PathVariable("num") Long num) {
-        long cost = userService.testArrayList(num);
-        return ResponseResult.success(cost);
+    @PostMapping("/lock")
+    public ResponseResult lockAccount(@RequestBody User user) throws BusinessException {
+        userService.lockAccount(user);
+        return ResponseResult.success();
     }
 
+    /**
+     * 用户锁定
+     *
+     * @param userList 被锁定的用户, 需有username
+     * @return 操作结果
+     */
     @ResponseBody
-    @GetMapping("/test/linkedList/{num}")
-    public ResponseResult testLinkedList(@PathVariable("num") Long num) {
-        long cost = userService.testLinkedList(num);
-        return ResponseResult.success(cost);
+    @PostMapping("/unlock")
+    public ResponseResult unlockAccount(@RequestBody List<User> userList) throws BusinessException {
+        userService.unlockAccount(userList);
+        return ResponseResult.success();
     }
 }

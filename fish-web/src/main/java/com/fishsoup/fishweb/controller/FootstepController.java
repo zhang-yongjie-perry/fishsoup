@@ -1,9 +1,9 @@
 package com.fishsoup.fishweb.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.fishsoup.entity.http.ResponseResult;
 import com.fishsoup.fishweb.domain.Footstep;
 import com.fishsoup.fishweb.enums.ArtworkTypeEnum;
-import com.fishsoup.fishweb.http.ResponseResult;
 import com.fishsoup.fishweb.service.FootstepService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

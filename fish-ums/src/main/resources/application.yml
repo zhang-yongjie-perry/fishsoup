@@ -1,5 +1,5 @@
 server:
-  port: 9097
+  port: ${FISH_UMS_PORT:9006}
   servlet:
     context-path: /ums
 logging:
@@ -8,9 +8,29 @@ logging:
     root: WARN
     com.fishsoup.fishums: DEBUG
 
+shiro:
+  rememberMeManager:
+    cookie:
+      maxAge: 7200
+  enabled: true
+  loginUrl: /user/login
+#  successUrl: /user/home
+
 spring:
   application:
     name: fish-ums
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER_ADDR:localhost}:8848
+      username: ${NACOS_USERNAME:}
+      password: ${NACOS_PASSWORD:}
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+  # 开启覆盖同名bean
+#  main:
+#    allow-bean-definition-overriding: true
   #数据库连接配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -66,18 +86,38 @@ spring:
         #登录所用的用户名与密码
         login-username: fish
         login-password: 123456
-  thymeleaf:
-    prefix: classpath:/templates/
-    suffix: .html
-  # 开启覆盖同名bean
-#  main:
-#    allow-bean-definition-overriding: true
 
-shiro:
-  rememberMeManager:
-    cookie:
-      maxAge: 7200
+base:
+  config:
+    mdb:
+      hostname: ${MYSQL_ADDR:localhost}
+      dbname: db_fish
+      port: 3306
+      username: fish
+      password: 123456
+
+seata:
   enabled: true
-  loginUrl: /user/login
-#  successUrl: /user/home
-
+  application-id: ${spring.application.name}
+  tx-service-group: ${spring.application.name}-tx-group
+  config:
+    type: nacos
+    nacos:
+      serverAddr: ${NACOS_SERVER_ADDR:localhost}:8848
+      dataId: "seata.properties"
+      username: ${NACOS_USERNAME:}
+      password: ${NACOS_PASSWORD:}
+      group: SEATA_GROUP
+  registry:
+    type: nacos
+    nacos:
+      application: seata-server
+      server-addr: ${NACOS_SERVER_ADDR:localhost}:8848
+      username: ${NACOS_USERNAME:}
+      password: ${NACOS_PASSWORD:}
+      group: SEATA_GROUP
+      cluster: default
+  enable-auto-data-source-proxy: true
+  service:
+    vgroup-mapping:
+      paas-protocol-group: default

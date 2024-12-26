@@ -1,6 +1,6 @@
 package com.fishsoup.fishweb.service;
 
-import com.fishsoup.fishweb.exception.BusinessException;
+import com.fishsoup.entity.exception.BusinessException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;

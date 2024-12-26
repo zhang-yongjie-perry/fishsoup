@@ -1,7 +1,7 @@
 package com.fishsoup.fishums.security;
 
-import com.fishsoup.fishums.domain.User;
-import com.fishsoup.fishums.service.UserService;
+import com.fishsoup.entity.user.User;
+import com.fishsoup.fishums.feignService.UserFeignService;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
@@ -9,11 +9,11 @@ import org.apache.shiro.subject.PrincipalCollection;
 
 public class UserRealm extends AuthorizingRealm {
 
-    private final UserService userService;
+    private final UserFeignService userFeignService;
 
-    public UserRealm(BCryptCredentialsMatcher credentialsMatcher, UserService userService) {
+    public UserRealm(BCryptCredentialsMatcher credentialsMatcher, UserFeignService userFeignService) {
         super.setCredentialsMatcher(credentialsMatcher);
-        this.userService = userService;
+        this.userFeignService = userFeignService;
     }
 
     @Override
@@ -22,7 +22,7 @@ public class UserRealm extends AuthorizingRealm {
         String username = upToken.getUsername();
         User presentedUser;
         try {
-            presentedUser = userService.loadUserByUsername(username);
+            presentedUser = userFeignService.findUserByUsername(username);
         } catch (Exception e) {
             throw new AuthenticationException(e.getMessage(), e);
         }

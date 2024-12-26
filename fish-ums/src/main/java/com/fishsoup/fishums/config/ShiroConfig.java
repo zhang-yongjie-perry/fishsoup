@@ -1,8 +1,8 @@
 package com.fishsoup.fishums.config;
 
+import com.fishsoup.fishums.feignService.UserFeignService;
 import com.fishsoup.fishums.security.BCryptCredentialsMatcher;
 import com.fishsoup.fishums.security.UserRealm;
-import com.fishsoup.fishums.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.shiro.realm.Realm;
 import org.apache.shiro.spring.web.config.DefaultShiroFilterChainDefinition;
@@ -13,12 +13,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @RequiredArgsConstructor
 public class ShiroConfig {
-    private final UserService userService;
+
+    private final UserFeignService userFeignService;
     private final BCryptCredentialsMatcher credentialsMatcher;
 
     @Bean
     public Realm realm() {
-        return new UserRealm(credentialsMatcher, userService);
+        return new UserRealm(credentialsMatcher, userFeignService);
     }
 
     @Bean

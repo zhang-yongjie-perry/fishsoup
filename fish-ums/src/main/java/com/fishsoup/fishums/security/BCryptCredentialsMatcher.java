@@ -1,6 +1,5 @@
 package com.fishsoup.fishums.security;
 
-import com.fishsoup.fishums.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;

@@ -1,10 +1,10 @@
 package com.fishsoup.fishweb.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.fishsoup.entity.http.ResponseResult;
 import com.fishsoup.entity.pic.Picture;
-import com.fishsoup.fishweb.http.ResponseResult;
 import com.fishsoup.fishweb.service.PictureService;
-import com.fishsoup.fishweb.util.StringUtils;
+import com.fishsoup.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

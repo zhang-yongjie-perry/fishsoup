@@ -1,7 +1,7 @@
 server:
-  port: ${FISH_WEB_PORT:9099}
+  port: ${FISH_WEB_PORT:9002}
   servlet:
-    context-path: /fish
+    context-path: /web
 
 logging:
   config: classpath:logback.xml
@@ -19,17 +19,14 @@ spring:
       discovery:
         server-addr: ${NACOS_SERVER_ADDR:localhost}:8848
   data:
+    redis:
+      url: redis://${REDIS_PASSWORD:123456}@${REDIS_ADDR:localhost}:6379/0
     mongodb:
       username: admin
       password: 123456
       host: ${MONGO_DB_ADDR:localhost}
       port: 27017
       database: fish
-  security:
-    user:
-      name: admin
-      password: 123
-
   application:
     name: fish-web
   #数据库连接配置
