@@ -13,6 +13,8 @@ spring:
     nacos:
       discovery:
         server-addr: ${NACOS_SERVER_ADDR:localhost}:8848
+      username: ${NACOS_USERNAME:}
+      password: ${NACOS_PASSWORD:}
   data:
     redis:
       url: redis://${REDIS_PASSWORD:123456}@${REDIS_ADDR:localhost}:6379/0

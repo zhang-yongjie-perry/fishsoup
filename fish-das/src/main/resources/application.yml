@@ -19,6 +19,8 @@ spring:
     nacos:
       discovery:
         server-addr: ${NACOS_SERVER_ADDR:localhost}:8848
+      username: ${NACOS_USERNAME:}
+      password: ${NACOS_PASSWORD:}
 
 logging:
   config: classpath:logback.xml

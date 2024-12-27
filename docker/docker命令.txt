@@ -69,8 +69,6 @@ docker logs oracle-db
 # 拉取镜像(默认下载oracle-12c最新版本的镜像)*
  
 docker pull truevoly/oracle-12c
-
- 
  
 # 创建oracle-12c容器并启动
  
@@ -188,3 +186,6 @@ docker run --name seata -p 7091:7091 -p 8091:8091 -e SEATA_IP=172.21.48.1 --netw
 将seata加入fish-netwrok网络中
 docker network connect fish-network 8f184a89d2200668b390475f5a1d76b11a06a98f5bf6b946f65025d0e1a3b23c
 
+13. 阿里云加速
+$ docker login --username=梦沉书远 crpi-gprv8r1fcnlyohht.cn-qingdao.personal.cr.aliyuncs.com
+密码 15269603184vae

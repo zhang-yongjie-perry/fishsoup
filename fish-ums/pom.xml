@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.fishsoup</groupId>
     <artifactId>fish-ums</artifactId>
-    <version>1.0</version>
+    <version>2.0</version>
     <name>fish-ums</name>
     <description>fish-ums</description>
     <properties>

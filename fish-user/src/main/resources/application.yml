@@ -8,6 +8,8 @@ spring:
     nacos:
       discovery:
         server-addr: ${NACOS_SERVER_ADDR:localhost}:8848
+      username: ${NACOS_USERNAME:}
+      password: ${NACOS_PASSWORD:}
   application:
     name: fish-user
   #数据库连接配置
@@ -84,8 +86,8 @@ base:
 
 seata:
   enabled: true
-  application-id: ${spring.application.name}
-  tx-service-group: ${spring.application.name}-tx-group
+  application-id: fish-user
+  tx-service-group: fish-user-tx-group
   config:
     type: nacos
     nacos:
