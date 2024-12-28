@@ -79,6 +79,7 @@ public class MovieServiceImpl implements MovieService {
         Query query = new Query(Criteria.where("title").is(mv.getTitle()).and("play_home_url").is(mv.getPlayHomeUrl()));
         Update update = new Update();
         update.set("title", mv.getTitle());
+        update.set("site", mv.getSite());
         update.set("sort_num", mv.getSortNum());
         update.set("img_url", mv.getImgUrl());
         update.set("synopsis", mv.getSynopsis());

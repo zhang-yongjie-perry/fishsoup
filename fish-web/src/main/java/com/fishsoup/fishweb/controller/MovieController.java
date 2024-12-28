@@ -30,9 +30,4 @@ public class MovieController {
         movieService.searchTvMovieByTitle(title);
         return ResponseResult.success();
     }
-
-    @GetMapping("/hello/das")
-    public String helloDas() {
-        return movieService.helloDas();
-    }
 }
