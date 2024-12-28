@@ -77,7 +77,7 @@ public class UserServiceImpl implements UserService {
         RBucket<User> bucket = redisson.getBucket("fish:user:" + user.getUsername());
         bucket.set(user);
         // 设置登录过期时间2小时
-        bucket.expire(Duration.ofHours(2));
+        bucket.expire(Duration.ofHours(24));
         return user;
     }
 

@@ -1,7 +1,8 @@
 package com.fishsoup.fishdas.service.impl;
 
+import com.fishsoup.entity.exception.BusinessException;
+import com.fishsoup.entity.movie.MvResource;
 import com.fishsoup.entity.movie.PlayMovie;
-import com.fishsoup.entity.movie.PlayOrg;
 import com.fishsoup.entity.movie.TvMovie;
 import com.fishsoup.enums.MovieStatusEnum;
 import com.fishsoup.fishdas.service.MovieService;
@@ -10,10 +11,7 @@ import com.fishsoup.util.DateUtils;
 import com.fishsoup.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.Headers;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -33,16 +31,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.IntStream;
 
+/**
+ * 努努影视爬虫
+ */
 @Slf4j
-@Service("MovieServiceImpl")
+@Service("NunuMovieServiceImpl")
 @RequiredArgsConstructor
-public class MovieServiceImpl implements MovieService {
+public class NunuMovieServiceImpl implements MovieService {
 
-    private final static String REFERER_URL = "https://www.fangsendq.com/";
+    private final static String REFERER_URL = "https://www.nunuys.com/";
     private final static String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
-    private final static String SEARCH_PAGE_REGEX = "-{10}\\d+-{3}";
+    private final static String HTTP_REGEX = "http.*?\\.m3u8";
+    private final static String SOURCE_REGEX = "var urlList = decryptDict.*?\\$\\(document\\)\\.ready\\(function\\(\\)\\{";
     private final static Headers HEADERS = new Headers.Builder().add("referer", REFERER_URL).add("user-agent", USER_AGENT).build();
 
     private final OkHttpClient okHttpClient;
@@ -51,7 +52,7 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public boolean crawlMoviesByName(String title) {
-        String requestUrl = String.format("https://www.fangsendq.com/vodsearch/-------------.html?wd=%s&submit=", title);
+        String requestUrl = String.format("https://www.nunuys.com/search?q=%s", title);
         // 1. 解析搜索结果列表
         List<TvMovie> mvs = Collections.synchronizedList(new ArrayList<>());
         toParseSearchResultHtml(requestUrl, mvs);
@@ -59,11 +60,10 @@ public class MovieServiceImpl implements MovieService {
         if (CollectionUtils.isEmpty(mvs)) {
             return false;
         }
-        /*
-            受限于目标网站并发限制, 此处暂时不对剧集播放首页及剧集的m3u8地址进行获取, 当页面点击播放按钮时再进行获取
-            toParsePlayHomeUrl(mvs);
-            topParsePlayUrl(mvs);
-         */
+
+        // 解析播放首页
+        toParsePlayHomeUrl(mvs);
+
         // 保存数据
         try (ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor()) {
             mvs.forEach(mv -> {
@@ -75,10 +75,11 @@ public class MovieServiceImpl implements MovieService {
         return true;
     }
 
-    private void saveMv(TvMovie mv) {
+    public void saveMv(TvMovie mv) {
         Query query = new Query(Criteria.where("title").is(mv.getTitle()).and("play_home_url").is(mv.getPlayHomeUrl()));
         Update update = new Update();
         update.set("title", mv.getTitle());
+        update.set("site", mv.getSite());
         update.set("sort_num", mv.getSortNum());
         update.set("img_url", mv.getImgUrl());
         update.set("synopsis", mv.getSynopsis());
@@ -86,25 +87,13 @@ public class MovieServiceImpl implements MovieService {
         update.set("status", mv.getStatus());
         update.set("last_update_time", mv.getLastUpdateTime());
         update.set("play_orgs", mv.getPlayOrgs());
+        update.set("episode_text", mv.getEpisodeText());
         mongoTemplate.upsert(query, update, TvMovie.class);
     }
 
     @Override
     public boolean crawlEpisodesByMovieId(String id) {
-        TvMovie mv = mongoTemplate.findOne(new Query(Criteria.where("_id").is(id)), TvMovie.class);
-        if (mv == null) {
-            return false;
-        }
-        List<TvMovie> mvs = List.of(mv);
-        toParsePlayHomeUrl(mvs);
-        topParsePlayUrl(mvs);
-        saveMv(mv);
         return true;
-    }
-
-    @Override
-    public String getM3u8Resource(String resourceId) {
-        return "";
     }
 
     /**
@@ -112,35 +101,6 @@ public class MovieServiceImpl implements MovieService {
      * @param mvs 剧集列表
      */
     private void topParsePlayUrl(List<TvMovie> mvs) {
-        mvs.parallelStream().forEach(mv -> {
-            if (CollectionUtils.isEmpty(mv.getPlayOrgs())) {
-                return;
-            }
-            mv.getPlayOrgs().parallelStream().forEach(playOrg -> {
-                Elements episodeEls = playOrg.getEpisodeEls();
-                if (episodeEls.size() > 100) {
-                    return;
-                }
-                List<PlayMovie> playList = Collections.synchronizedList(new ArrayList<>());
-                try (ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor()) {
-                    episodeEls.forEach(episodeEl -> {
-                        executorService.submit(() -> {
-                            // 请求播放页以获取m3u8地址
-                            String playPageHtmlStr = request(episodeEl.attr("href"));
-                            if (!StringUtils.hasText(playPageHtmlStr)) {
-                                playList.add(new PlayMovie().setEpisode(episodeEl.text()));
-                                return;
-                            }
-                            PlayMovie playMovie = parsePlayUrl(playPageHtmlStr, episodeEl.text());
-                            playList.add(playMovie);
-                            log.info("剧名: {}, 剧集: {}, m3u8地址: {}", mv.getTitle(), playMovie.getEpisode(), playMovie.getM3u8Url());
-                        });
-                    });
-                }
-                playOrg.setLastEpisode(playList.getLast().getEpisode()).setPlayList(playList.stream().sorted().toList());
-            });
-            mv.setStatus(MovieStatusEnum.COMPLETED.getCode());
-        });
     }
 
     /**
@@ -168,6 +128,59 @@ public class MovieServiceImpl implements MovieService {
         }
     }
 
+    @Override
+    public String getM3u8Resource(String resourceId) {
+        MvResource mr = mongoTemplate.findOne(new Query(Criteria.where("source_id").is(resourceId)), MvResource.class);
+        if (mr != null && StringUtils.hasText(mr.getM3u8Url())) {
+            return mr.getM3u8Url();
+        }
+        MvResource mvResource = new MvResource().setSite("nunu").setCreateTime(DateUtils.now()).setSourceId(resourceId);
+        String m3u8UrlRes = "";
+        FormBody formBody = new FormBody.Builder().add("id", resourceId).build();
+        try (Response response = okHttpClient.newCall(new Request.Builder()
+            .headers(new Headers.Builder()
+                .add(":authority", "www.nunuys.com")
+                .add(":method", "POST")
+                .add(":path", "/source/")
+                .add(":scheme", "https")
+                .add("Accept", "*/*")
+                .add("Accept-encoding", "gzip, deflate, br, zstd")
+                .add("Accept-language", "zh-CN,zh;q=0.9")
+                .add("Content-length", "11")
+                .add("Content-type", "application/x-www-form-urlencoded; charset=UTF-8")
+                .add("Origin", "https://www.nunuys.com")
+                .add("Priority", "u=0, i")
+                .add("Sec-ch-ua", "\"Google Chrome\";v=\"131\", \"Chromium\";v=\"131\", \"Not_A Brand\";v=\"24\"")
+                .add("Sec-ch-ua-mobile", "?0")
+                .add("Referer", "https://www.nunuys.com/dsj/76668")
+                .add("Sec-ch-ua-platform", "\"Windows\"")
+                .add("Sec-fetch-dest", "empty")
+                .add("Sec-fetch-mode", "cors")
+                .add("Sec-fetch-site", "same-origin")
+                .add("User-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
+                .add("X-requested-with", "XMLHttpRequest")
+                .build()).url("https://www.nunuys.com/source/")
+            .post(formBody).build()).execute()) {
+            if (!response.isSuccessful()) {
+                throw new BusinessException("获取资源失败");
+            }
+            if (response.body() == null) {
+                throw new BusinessException("获取资源失败");
+            }
+            m3u8UrlRes = response.body().string();
+        } catch (IOException ioException) {
+            log.error("请求{}异常: {}", "https://www.nunuys.com/source/", ioException.getMessage(), ioException);
+            throw new BusinessException("获取资源失败");
+        }
+        Matcher matcher = Pattern.compile(HTTP_REGEX, Pattern.CASE_INSENSITIVE).matcher(m3u8UrlRes);
+        if (!matcher.find()) {
+            throw new BusinessException("获取资源失败");
+        }
+        mvResource.setM3u8Url(matcher.group(0).trim());
+        mongoTemplate.save(mvResource);
+        return mvResource.getM3u8Url();
+    }
+
     /**
      * 解析搜索页
      * @param searchUrl 搜索地址
@@ -182,18 +195,28 @@ public class MovieServiceImpl implements MovieService {
 
         // 播放列表
         Document html = Jsoup.parse(searchResultHtml);
-        Elements playListEls = html.getElementsByClass("stui-vodlist__media col-pd clearfix").getFirst().getElementsByTag("li");
+        Elements playListEls = html.getElementsByClass("lists-content").getFirst().getElementsByTag("li");
         List<TvMovie> resultMvs = playListEls.parallelStream().map(element -> {
-            Elements aEls = element.getElementsByTag("a");
-            String imgUrl = aEls.getFirst().attr("data-original");
-            String title = aEls.get(1).text();
-            String detailsUrl = aEls.get(3).attr("href");
+            Element infoEl = element.getElementsByTag("a").getFirst();
+            Elements imgEl = infoEl.getElementsByTag("img");
+            String imgUrl = imgEl.attr("src");
+            String title = imgEl.attr("alt");
+            String detailsUrl = REFERER_URL + infoEl.attr("href");
+            Elements notes = infoEl.getElementsByClass("note");
+            String synopsis = "";
+            if (!notes.isEmpty()) {
+                Element spanEl = notes.first();
+                if (spanEl != null) {
+                    synopsis = spanEl.getElementsByTag("span").text();
+                }
+            }
             return new TvMovie().setTitle(title)
-                .setSite("paopao")
-                .setStatus(MovieStatusEnum.INIT.getCode())
+                .setSite("nunu")
+                .setStatus(MovieStatusEnum.COMPLETED.getCode())
                 .setSortNum(0)
                 .setImgUrl(imgUrl)
                 .setPlayHomeUrl(detailsUrl)
+                .setSynopsis(synopsis)
                 .setLastUpdateTime(DateUtils.now());
         }).toList();
         mvs.addAll(resultMvs);
@@ -214,26 +237,20 @@ public class MovieServiceImpl implements MovieService {
         }
 
         // 分页列表
-        Elements pageListEls = html.getElementsByClass("stui-page text-center clearfix");
+        Elements pageListEls = html.getElementsByClass("next-page");
         if (pageListEls.isEmpty()) {
             return;
         }
         Elements aTagEls = pageListEls.getFirst().getElementsByTag("a");
         int size = aTagEls.size();
-        if (size < 2) {
+        if (size < 1) {
             return;
         }
-        String lastUrl = aTagEls.get(size - 1).attr("href");
-        Matcher matcher = Pattern.compile(SEARCH_PAGE_REGEX).matcher(lastUrl);
-        if (!matcher.find()) {
+        String lastUrl = Objects.equals("下一页", aTagEls.get(size - 1).text()) ? aTagEls.get(size - 1).attr("href") : "";
+        if (!StringUtils.hasText(lastUrl)) {
             return;
         }
-        int lastPageNum = Integer.parseInt(matcher.group(0).replaceAll("-+", ""));
-        try (ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor()) {
-            IntStream.range(1, lastPageNum + 1).forEach(i -> executorService.submit(() -> {
-                doParseSearchResultHtml(matcher.replaceAll(String.format("----------%d---", i)), mvs);
-            }));
-        }
+        toParseSearchResultHtml(REFERER_URL + "search" + lastUrl, mvs);
     }
 
     /**
@@ -245,23 +262,18 @@ public class MovieServiceImpl implements MovieService {
         try (ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor()) {
             mvs.forEach(mv -> {
                 executorService.submit(() -> {
-                    String playHomeHtmlStr = request(mv.getPlayHomeUrl());
-                    Document html = Jsoup.parse(playHomeHtmlStr);
-                    String synopsis = html.getElementsByClass("stui-vodlist__thumb picture v-thumb")
-                        .getFirst().getElementsByTag("span").getLast().text();
-                    mv.setSynopsis(synopsis);
-                    mv.setLastUpdateTime(DateUtils.now());
-                    Element playEl = html.getElementsByClass("stui-pannel-box b playlist mb").getFirst();
-                    Element playOrgEl = playEl.getElementsByClass("nav nav-tabs active").getFirst();
-                    Elements playOrgTags = playOrgEl.getElementsByTag("a");
-                    List<PlayOrg> playOrgs = playOrgTags.stream().map(element -> {
-                        PlayOrg playOrg = new PlayOrg().setOrgName(element.text());
-                        String playUrlId = element.attr("href").substring(1);
-                        Elements episodeEls = Objects.requireNonNull(playEl.getElementById(playUrlId)).getElementsByTag("a");
-                        playOrg.setEpisodeEls(episodeEls);
-                        return playOrg;
-                    }).toList();
-                    mv.setPlayOrgs(playOrgs);
+                    String request = request(mv.getPlayHomeUrl());
+                    if (!StringUtils.hasText(request)) {
+                        return;
+                    }
+                    // 这里需要匹配换行 Pattern.DOTALL
+                    Matcher matcher = Pattern.compile(SOURCE_REGEX, Pattern.DOTALL).matcher(request);
+                    if (!matcher.find()) {
+                        return;
+                    }
+                    String urlList = matcher.group(0).trim().replaceAll("var urlList = ", "")
+                        .replaceAll("\\$\\(document\\)\\.ready\\(function\\(\\)\\{", "").trim();
+                    mv.setEpisodeText(urlList);
                 });
             });
         }

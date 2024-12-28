@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import static com.fishsoup.enums.MovieStatusEnum.COMPLETED;
 import static com.fishsoup.fishweb.enums.ArtworkTypeEnum.MOVIE;
 
 @Service
@@ -50,6 +51,9 @@ public class MovieServiceImpl implements MovieService {
         if (Objects.nonNull(conditions) && StringUtils.hasText(conditions.getTitle())) {
             criteria.and("title").regex(Pattern.compile("^.*" + conditions.getTitle() + ".*$", Pattern.CASE_INSENSITIVE));
         }
+        if (Objects.nonNull(conditions) && StringUtils.hasText(conditions.getSite())) {
+            criteria.and("site").is(conditions.getSite());
+        }
         query.addCriteria(criteria);
         query.with(Sort.by(Sort.Order.asc("sort_num"), Sort.Order.desc("last_update_time")));
         query.fields().include("_id", "title", "img_url", "synopsis", "last_update_time", "status", "sort_num");
@@ -71,7 +75,7 @@ public class MovieServiceImpl implements MovieService {
         if (mv == null) {
             return null;
         }
-        if (mv.getStatus() == 1) {
+        if (Objects.equals(mv.getStatus(), COMPLETED.getCode())) {
             QueryWrapper<Footstep> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("user_id", UserUtils.getUserId());
             queryWrapper.eq("type", MOVIE.getCode());
@@ -81,8 +85,10 @@ public class MovieServiceImpl implements MovieService {
             if (CollectionUtils.isEmpty(footsteps)) {
                 return mv;
             }
-            return mv.setHisPlayOrgName(footsteps.getFirst().getPlayOrgName()).setHisEpisode(footsteps.getFirst().getEpisode())
-                .setHisM3u8Url(footsteps.getFirst().getM3u8Url());
+            return mv.setHisPlayOrgName(footsteps.getFirst().getPlayOrgName())
+                .setHisEpisode(footsteps.getFirst().getEpisode())
+                .setHisM3u8Url(footsteps.getFirst().getM3u8Url())
+                .setStartTime(footsteps.getFirst().getStartTime());
         }
         // 通知fish-das去获取剧集信息
         boolean success = dasFeignService.crawlEpisodesByMovieId(id);

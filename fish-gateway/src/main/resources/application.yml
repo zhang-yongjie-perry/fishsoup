@@ -64,3 +64,9 @@ spring:
             - Query=Authorization, ^Bearer.+
           filters:
             - RemoveRequestParameter=Authorization
+
+        - id: fish_das
+          uri: lb://fish-das
+          predicates:
+            - Path=/das/**
+            - Header=Authorization, ^Bearer .+

@@ -37,6 +37,9 @@ public class TvMovie implements Serializable {
     private Date lastUpdateTime;
     @Field("play_orgs")
     private List<PlayOrg> playOrgs;
+    private String site;
+    @Field("episode_text")
+    private String episodeText;
 
     @Transient
     private String hisPlayOrgName;
@@ -44,4 +47,6 @@ public class TvMovie implements Serializable {
     private String hisEpisode;
     @Transient
     private String hisM3u8Url;
+    @Transient
+    private Integer startTime;
 }

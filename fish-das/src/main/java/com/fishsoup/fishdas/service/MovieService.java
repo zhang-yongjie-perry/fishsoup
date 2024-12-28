@@ -17,4 +17,6 @@ public interface MovieService {
      * @return
      */
     boolean crawlEpisodesByMovieId(String id);
+
+    String getM3u8Resource(String resourceId);
 }

@@ -9,6 +9,7 @@ import com.fishsoup.fishweb.domain.Footstep;
 import com.fishsoup.fishweb.enums.ArtworkTypeEnum;
 import com.fishsoup.fishweb.mapper.FootstepMapper;
 import com.fishsoup.fishweb.util.UserUtils;
+import com.fishsoup.util.CollectionUtils;
 import com.fishsoup.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -60,16 +61,16 @@ public class FootstepAspect {
                 return;
             }
             Footstep footstep = new Footstep().setUserId(userId).setToday(today).setType(type).setCorrelationId(correlationId)
-                .setDelFlag(YesNoEnum.NO)
+                .setDelFlag(YesNoEnum.NO).setStartTime(20)
                 .setCreateBy(loginName).setCreateTime(DateUtils.now())
                 .setUpdateBy(loginName).setUpdateTime(DateUtils.now());
             if (result instanceof Creation creation) {
                 footstep.setTitle(creation.getTitle()).setAuthor(creation.getAuthor()).setSummary(creation.getSummary());
             } else if (result instanceof TvMovie movie) {
                 footstep.setTitle(movie.getTitle()).setImageUrl(movie.getImgUrl())
-                    .setPlayOrgName(movie.getPlayOrgs().getFirst().getOrgName())
-                    .setEpisode(movie.getPlayOrgs().getFirst().getPlayList().getFirst().getEpisode())
-                    .setM3u8Url(movie.getPlayOrgs().getFirst().getPlayList().getFirst().getM3u8Url());
+                    .setPlayOrgName(CollectionUtils.isEmpty(movie.getPlayOrgs()) ? "" : movie.getPlayOrgs().getFirst().getOrgName())
+                    .setEpisode(CollectionUtils.isEmpty(movie.getPlayOrgs()) ? "" : movie.getPlayOrgs().getFirst().getPlayList().getFirst().getEpisode())
+                    .setM3u8Url(CollectionUtils.isEmpty(movie.getPlayOrgs()) ? "" : movie.getPlayOrgs().getFirst().getPlayList().getFirst().getM3u8Url());
             }
             footstepMapper.insert(footstep);
         }, 1L, TimeUnit.MICROSECONDS);

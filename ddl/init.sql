@@ -97,6 +97,7 @@ CREATE TABLE `f_footstep` (
                               `play_org_name` varchar(10) DEFAULT NULL,
                               `episode` varchar(16) DEFAULT NULL,
                               `m3u8_url` varchar(100) DEFAULT NULL,
+                              `start_time` int NOT NULL DEFAULT 0 COMMENT '视频默认开始播放时间',
                               PRIMARY KEY (`id`),
                               UNIQUE KEY `f_footstep_UN` (`type`,`user_id`,`correlation_id`,`del_flag`,`today`),
                               KEY `f_footsteps_user_id_IDX` (`user_id`) USING BTREE,

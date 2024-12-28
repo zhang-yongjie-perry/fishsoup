@@ -37,8 +37,13 @@ public class FootstepServiceImpl implements FootstepService {
         queryWrapper.eq("type", footstep.getType());
         queryWrapper.eq("today", DateUtils.now(DateUtils.YYYY_MM_DD));
         queryWrapper.eq("correlation_id", footstep.getCorrelationId());
-        Footstep toUpdate = new Footstep().setPlayOrgName(footstep.getPlayOrgName()).setEpisode(footstep.getEpisode()).setM3u8Url(footstep.getM3u8Url())
-            .setUpdateBy(UserUtils.getLoginName()).setUpdateTime(DateUtils.now());
+        Footstep toUpdate = new Footstep()
+            .setPlayOrgName(footstep.getPlayOrgName())
+            .setEpisode(footstep.getEpisode())
+            .setM3u8Url(footstep.getM3u8Url())
+            .setStartTime(footstep.getStartTime())
+            .setUpdateBy(UserUtils.getLoginName())
+            .setUpdateTime(DateUtils.now());
         footstepMapper.update(toUpdate, queryWrapper);
         return true;
     }

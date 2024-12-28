@@ -39,6 +39,7 @@ public class Footstep implements Serializable {
     private String playOrgName;
     private String episode;
     private String m3u8Url;
+    private Integer startTime;
     private YesNoEnum delFlag;
     private String createBy;
     private Date createTime;

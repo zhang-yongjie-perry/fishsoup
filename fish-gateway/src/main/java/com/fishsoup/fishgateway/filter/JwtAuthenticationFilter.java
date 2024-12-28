@@ -75,8 +75,8 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         if (cacheUser == null) {
             return Mono.error(new AccessDeniedException("登录过期, 请重新登录"));
         }
-        // 延迟2个小时
-        bucket.expire(Duration.ofHours(2));
+        // 延迟24个小时
+        bucket.expire(Duration.ofHours(24));
         return chain.filter(exchange);
     }
 
