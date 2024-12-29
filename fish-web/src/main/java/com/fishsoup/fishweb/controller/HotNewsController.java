@@ -1,6 +1,6 @@
 package com.fishsoup.fishweb.controller;
 
-import com.fishsoup.fishweb.domain.HotNews;
+import com.fishsoup.entity.news.HotNews;
 import com.fishsoup.fishweb.service.HotNewsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -14,8 +14,9 @@ public class HotNewsController {
 
     private final HotNewsService hotNewsService;
 
-    @PostMapping("/list/{limit}")
-    public List<HotNews> listHotNews(@RequestBody HotNews conditions, @PathVariable("limit") int limit) {
-        return hotNewsService.listHotNews(conditions, limit);
+    @PostMapping("/list/{page}/{limit}")
+    public List<HotNews> listHotNews(@RequestBody HotNews conditions, @PathVariable("page") int page,
+                                     @PathVariable("limit") int limit) {
+        return hotNewsService.listHotNews(conditions, page - 1, limit);
     }
 }

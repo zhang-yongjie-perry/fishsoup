@@ -8,10 +8,10 @@ public class StringToObjConverter implements Converter<String, Object> {
     @Override
     public Object convert(String source) {
         if (CreationClassifyEnum.isCreationClassifyEnum(source)) {
-            return CreationClassifyEnum.fromCode(source);
+            return CreationClassifyEnum.valueOf(source);
         }
         if (VisibleRangeEnum.isVisibleRangeEnum(source)) {
-            return VisibleRangeEnum.fromCode(source);
+            return VisibleRangeEnum.valueOf(source);
         }
         return source;
     }

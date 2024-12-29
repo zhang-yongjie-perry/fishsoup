@@ -1,17 +1,26 @@
 package com.fishsoup.fishdas.controller;
 
+import com.fishsoup.entity.news.HotNews;
+import com.fishsoup.fishdas.service.HotNewsService;
 import com.fishsoup.fishdas.service.MovieService;
 import com.fishsoup.fishdas.service.PictureService;
+import com.fishsoup.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.Duration;
 
 @RestController
 @RequestMapping("/crawl")
 public class CrawlNetworkResourceController {
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     @Autowired
     @Qualifier("MovieServiceImpl")
@@ -24,8 +33,17 @@ public class CrawlNetworkResourceController {
     @Autowired
     private PictureService pictureService;
 
+    @Autowired
+    @Qualifier("ChinaNewsServiceImpl")
+    private HotNewsService chinaNewsServiceImpl;
+
+    @Autowired
+    @Qualifier("QqNewsServiceImpl")
+    private HotNewsService qqNewsServiceImpl;
+
     @GetMapping("/hello")
     public String helloDas() {
+        System.out.println("hello");
         return "hello DAS";
     }
 
@@ -62,5 +80,30 @@ public class CrawlNetworkResourceController {
     @GetMapping("/picture/4k/{pageNum}")
     public boolean crawl4kPic(@PathVariable("pageNum") int pageNum) {
         return pictureService.crawl4kPic(pageNum);
+    }
+
+    @Scheduled(cron = "0 0 7-18 * * *")
+    @GetMapping("/hotNews/chinaNews")
+    public boolean crawlChinaNews() {
+        return chinaNewsServiceImpl.crawlHotNews();
+    }
+
+    @Scheduled(cron = "0 0 7-18 * * *")
+    @GetMapping("/hotNews/qqNews")
+    public boolean crawlQqNews() {
+        return qqNewsServiceImpl.crawlHotNews();
+    }
+
+    /**
+     * 删除3天前的新闻
+     * @return 执行结果
+     */
+    @Scheduled(cron = "0 0 0 */1 * *")
+    @DeleteMapping("/hotNews")
+    public boolean removeNews() {
+        Query query = new Query(Criteria.where("create_time")
+            .lt(DateUtils.addTime(DateUtils.now(), - (Duration.ofDays(3).getSeconds() * 1000))));
+        mongoTemplate.remove(query, HotNews.class);
+        return true;
     }
 }

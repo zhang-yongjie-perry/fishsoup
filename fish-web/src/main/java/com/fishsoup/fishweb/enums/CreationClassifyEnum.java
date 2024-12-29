@@ -33,9 +33,9 @@ public enum CreationClassifyEnum {
         throw new IllegalArgumentException(code);
     }
 
-    public static boolean isCreationClassifyEnum(String code) {
+    public static boolean isCreationClassifyEnum(String name) {
         for (CreationClassifyEnum creationClassifyEnum : CreationClassifyEnum.values()) {
-            if (Objects.equals(creationClassifyEnum.getCode(), code)) {
+            if (Objects.equals(creationClassifyEnum.name(), name)) {
                 return true;
             }
         }

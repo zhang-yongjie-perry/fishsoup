@@ -67,7 +67,7 @@ public class FootstepAspect {
             if (result instanceof Creation creation) {
                 footstep.setTitle(creation.getTitle()).setAuthor(creation.getAuthor()).setSummary(creation.getSummary());
             } else if (result instanceof TvMovie movie) {
-                footstep.setTitle(movie.getTitle()).setImageUrl(movie.getImgUrl())
+                footstep.setTitle(movie.getTitle()).setImageUrl(movie.getImgUrl()).setSite(movie.getSite())
                     .setPlayOrgName(CollectionUtils.isEmpty(movie.getPlayOrgs()) ? "" : movie.getPlayOrgs().getFirst().getOrgName())
                     .setEpisode(CollectionUtils.isEmpty(movie.getPlayOrgs()) ? "" : movie.getPlayOrgs().getFirst().getPlayList().getFirst().getEpisode())
                     .setM3u8Url(CollectionUtils.isEmpty(movie.getPlayOrgs()) ? "" : movie.getPlayOrgs().getFirst().getPlayList().getFirst().getM3u8Url());

@@ -32,9 +32,9 @@ public enum VisibleRangeEnum {
         throw new IllegalArgumentException(code);
     }
 
-    public static boolean isVisibleRangeEnum(String code) {
+    public static boolean isVisibleRangeEnum(String name) {
         for (VisibleRangeEnum visibleRangeEnum : VisibleRangeEnum.values()) {
-            if (Objects.equals(visibleRangeEnum.getCode(), code)) {
+            if (Objects.equals(visibleRangeEnum.name(), name)) {
                 return true;
             }
         }

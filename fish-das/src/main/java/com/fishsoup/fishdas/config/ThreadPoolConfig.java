@@ -19,4 +19,9 @@ public class ThreadPoolConfig {
             new ThreadPoolExecutor.AbortPolicy()
         );
     }
+
+    @Bean("scheduledExecutorService")
+    public ScheduledExecutorService scheduledExecutorService() {
+        return new ScheduledThreadPoolExecutor(16);
+    }
 }
