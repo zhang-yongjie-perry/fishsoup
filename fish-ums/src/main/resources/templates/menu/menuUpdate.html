@@ -1,0 +1,79 @@
+<!DOCTYPE HTML>
+<html  lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.thymeleaf.org/thymeleaf-extras-shiro">
+<head>
+    <meta charset="UTF-8">
+    <title>修改菜单</title>
+    <link rel="stylesheet" th:href="@{/layui/css/layui.css}">
+    <script th:src="@{/jQuery/jQuery.js}"></script>
+    <script th:src="@{/layui/layui.js}"></script>
+    <script th:src="@{/js/modules.js}"></script>
+</head>
+<body>
+<div style="width: 60%;margin: 0 auto">
+    <form id="add-menu-form" class="layui-form" style="margin-top: 30px" th:object="${menu}">
+        <input name="id" th:value="*{id}" style="display: none">
+        <div class="layui-col-md12 layui-form-item">
+            <label for="name" class="layui-form-label">菜单名称</label>
+            <div class="layui-input-inline">
+                <input type="text" id="name" name="name" th:value="*{name}" required placeholder="请输入菜单名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-col-md12 layui-form-item">
+            <label for="url" class="layui-form-label">菜单路由</label>
+            <div class="layui-input-inline">
+                <input type="text" id="url" name="url" th:value="*{url}" required placeholder="请输入菜单路由" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-col-md12 layui-form-item">
+            <label for="sort" class="layui-form-label">排序</label>
+            <div class="layui-input-block">
+                <input type="number" id="sort" name="sort" th:value="*{sort}" min="0" step="1" required autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-col-md12 layui-form-item">
+            <label for="status" class="layui-form-label">状态</label>
+            <div class="layui-input-block">
+                <input type="checkbox" lay-skin="switch" id="status" name="status" value="NORMAL" th:field="*{status}" title="正常|停用" required autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-col-md12 layui-form-item">
+            <label for="remark" class="layui-form-label">备注</label>
+            <div class="layui-input-inline">
+                <input type="text" id="remark" name="remark" th:value="*{remark}" required placeholder="请输入备注" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-row">
+            <div class="layui-col-md12 layui-form-item">
+                <div class="layui-input-block" style="margin-top: 20px">
+                    <button class="layui-btn" lay-submit lay-filter="toSave">保存</button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<script type="text/javascript">
+    layui.form.on('submit(toSave)', function(data){
+        $.ajax({
+            url: '/ums/menu/update',
+            method: 'post',
+            contentType: 'application/x-www-form-urlencoded',
+            data: data.field,
+            success: function (res) {
+                if (res && res.code && res.code === '1') {
+                    layer.alert(res.msg ? res.msg : '登录失败, 请联系管理员')
+                    return
+                }
+                layer.msg('保存成功');
+                setTimeout(function () {
+                    let index = parent.layer.getFrameIndex(window.name); // 获取当前 iframe 层的索引
+                    parent.layer.close(index); // 关闭当前 iframe 弹层
+                }, 1000);
+            }
+        })
+        // 阻止表单跳转。如果需要表单跳转，去掉这行。
+        return false;
+    });
+</script>
+</body>
+</html>

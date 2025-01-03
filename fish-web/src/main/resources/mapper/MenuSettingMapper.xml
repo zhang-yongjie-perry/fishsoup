@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fishsoup.fishweb.mapper.MenuSettingMapper">
+    <select id="getPersonalMenus" parameterType="java.lang.String" resultType="com.fishsoup.fishweb.domain.MenuDTO">
+        SELECT fms.ID, fm.ID AS MENU_ID, fm.NAME, fm.URL, fm.REMARK, IFNULL(fms.SORT, fm.SORT) AS SORT,
+        IFNULL(fms.DISPLAY, 'true') AS DISPLAY  FROM f_menu fm
+            LEFT JOIN f_menu_setting fms
+            ON fm.ID = fms.MENU_ID AND fms.USERNAME = #{username}
+        WHERE fm.STATUS = '1' AND fm.DEL_FLAG = '0'
+    </select>
+</mapper>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html th:replace="~{ frame :: common_html(~{::title}, ~{::#content-body}, ~{::script}) }">
+<title>鱼汤网用户管理系统</title>
+<div id="content-body" class="layui-body" style="width: 100%;height: 100%;left: 0">
+    <!-- 内容主体区域 -->
+    <div style="padding: 15px;">
+        <div class="layui-form" style="margin-bottom: 20px">
+            <label for="name" class="layui-form-label">菜单名称</label>
+            <div class="layui-input-inline">
+                <input type="text" id="name" name="name" required placeholder="请输入菜单名称" autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-input-inline" style="margin-left: 20px">
+                <button id="search-input" class="layui-btn" onclick="reload()">确认</button>
+                <button type="reset" class="layui-btn layui-btn-primary" onclick="reset()">重置</button>
+            </div>
+        </div>
+        <table class="layui-hide" id="menu-list"></table>
+    </div>
+</div>
+<script th:src="@{/js/tools.js}"></script>
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" onclick="addMenu()">
+            新增
+        </button>
+        <button class="layui-btn layui-btn-sm layui-btn-primary" onclick="updateMenu()">
+            修改
+        </button>
+        <button class="layui-btn layui-btn-sm layui-btn-primary" onclick="invalidateMenus()">
+            失效
+        </button>
+        <button class="layui-btn layui-btn-sm layui-btn-primary" onclick="activateMenus()">
+            激活
+        </button>
+    </div>
+</script>
+<script type="text/javascript" th:inline="javascript">
+    $(function (){
+        let options = {
+            tableId: 'menu-list',
+            toolbarId: 'toolbar',
+            url: '/ums/menu/list',
+            method: 'post',
+            cols: [
+                {type: 'checkbox', fixed: 'left'},
+                {field: 'id', title: 'ID', sort: true, hide: true}
+                , {field: 'name', title: '菜单名称'}
+                , {field: 'url', title: '请求路径'}
+                , {field: 'sort', width: 80, title: '排序'}
+                , {field: 'status', width: 80, title: '状态', sort: true}
+                , {field: 'remark', title: '备注'}
+                , {field: 'createBy', title: '创建人'}
+                , {field: 'createTime', title: '创建时间'}
+                , {field: 'updateBy', title: '更新人'}
+                , {field: 'updateTime', title: '更新时间'}
+            ],
+            page: true
+        }
+        $initTable(options)
+    })
+
+    function reload() {
+        $reload({
+            tableId: 'menu-list',
+            params: {
+                'name': $("#name").val()
+            },
+            page: 1,
+            limit: 10
+        })
+    }
+
+    function reset() {
+        $("#name").val('')
+        reload()
+    }
+
+    function addMenu() {
+        layer.open({
+            type: 2,
+            title: '新增菜单',
+            area: ['700px', '600px'],
+            shadeClose: true,
+            content: ['/ums/menu/add'],
+            end: function(){
+                reload();
+            }
+        })
+    }
+
+    function updateMenu() {
+        let selectedData = layui.table.checkStatus("menu-list").data;
+        if (selectedData.length === 0) {
+            layer.msg('请选择一条数据')
+            return
+        }
+        if (selectedData.length > 1) {
+            layer.msg('只能选择一条数据')
+            return
+        }
+        layer.open({
+            type: 2,
+            title: '修改菜单',
+            area: ['700px', '600px'],
+            shadeClose: true,
+            content: ['/ums/menu/update/' + selectedData[0].id],
+            end: function(){
+                reload();
+            }
+        })
+    }
+
+    function invalidateMenus() {
+        let selectedData = layui.table.checkStatus("menu-list").data;
+        if (selectedData.length === 0) {
+            layer.msg('请选择一条数据')
+            return
+        }
+        layer.confirm('确认失效选中的菜单?', {
+            btn: ['确认', '关闭']
+        }, function (index) {
+            $.ajax({
+                url: '/ums/menu/invalidate',
+                method: 'post',
+                contentType: 'application/json',
+                data: JSON.stringify(selectedData),
+                success: function (res) {
+                    if (res.code === '1') {
+                        layer.msg('操作失败: ' + res.msg)
+                        layer.close(index)
+                        return
+                    }
+                    layer.msg('操作成功')
+                    layer.close(index)
+                    reload()
+                },
+            })
+        });
+    }
+
+    function activateMenus() {
+        let selectedData = layui.table.checkStatus("menu-list").data;
+        if (selectedData.length === 0) {
+            layer.msg('请选择至少一条数据')
+            return
+        }
+        layer.confirm('确认激活选中的菜单?', {
+            btn: ['确认', '关闭']
+        }, function (index) {
+            $.ajax({
+                url: '/ums/menu/active',
+                method: 'post',
+                contentType: 'application/json',
+                data: JSON.stringify(selectedData),
+                success: function (res) {
+                    if (res.code === '1') {
+                        layer.msg('操作失败: ' + res.msg)
+                        layer.close(index)
+                        return
+                    }
+                    layer.msg('操作成功')
+                    layer.close(index)
+                    reload()
+                }
+            })
+        });
+    }
+</script>
+</html>

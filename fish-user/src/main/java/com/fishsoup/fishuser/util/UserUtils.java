@@ -11,7 +11,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Objects;
 
-import static com.fishsoup.constant.UserConstant.INTERFACE;
+import static com.fishsoup.constant.UserConstant.ADMIN;
 import static com.fishsoup.util.JWTUtils.ISSUER_FISH;
 
 public class UserUtils {
@@ -19,14 +19,14 @@ public class UserUtils {
     public static String getAuthorization() {
         ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (requestAttributes == null) {
-            return INTERFACE;
+            return ADMIN;
         }
         HttpServletRequest request = requestAttributes.getRequest();
-        return StringUtils.hasText(request.getHeader("Authorization")) ? request.getHeader("Authorization") : INTERFACE;
+        return StringUtils.hasText(request.getHeader("Authorization")) ? request.getHeader("Authorization") : ADMIN;
     }
 
     public static User getLoginUser() {
-        if (Objects.equals(getAuthorization(), INTERFACE)) {
+        if (Objects.equals(getAuthorization(), ADMIN)) {
             return null;
         }
         String jwt = getAuthorization().substring("Bearer ".length());
@@ -46,11 +46,11 @@ public class UserUtils {
 
     public static String getLoginName() {
         User loginUser = getLoginUser();
-        return Objects.isNull(loginUser) ? INTERFACE : loginUser.getUsername();
+        return Objects.isNull(loginUser) ? ADMIN : loginUser.getUsername();
     }
 
     public static String getUserId() {
         User loginUser = getLoginUser();
-        return Objects.isNull(loginUser) ? INTERFACE : loginUser.getId();
+        return Objects.isNull(loginUser) ? ADMIN : loginUser.getId();
     }
 }

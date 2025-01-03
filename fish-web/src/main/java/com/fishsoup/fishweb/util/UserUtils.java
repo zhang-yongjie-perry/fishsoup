@@ -11,7 +11,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Objects;
 
-import static com.fishsoup.constant.UserConstant.INTERFACE;
+import static com.fishsoup.constant.UserConstant.ADMIN;
 import static com.fishsoup.util.JWTUtils.ISSUER_FISH;
 
 public class UserUtils {
@@ -22,12 +22,12 @@ public class UserUtils {
             return null;
         }
         HttpServletRequest request = requestAttributes.getRequest();
-        return StringUtils.hasText(request.getHeader("Authorization")) ? request.getHeader("Authorization") : INTERFACE;
+        return StringUtils.hasText(request.getHeader("Authorization")) ? request.getHeader("Authorization") : ADMIN;
     }
 
     public static User getLoginUser() throws RuntimeException {
         String authorization = getAuthorization();
-        if (authorization == null || Objects.equals(authorization, INTERFACE)) {
+        if (authorization == null || Objects.equals(authorization, ADMIN)) {
             return null;
         }
         String jwt = authorization.substring("Bearer ".length());
@@ -47,11 +47,11 @@ public class UserUtils {
 
     public static String getLoginName() {
         User loginUser = getLoginUser();
-        return Objects.isNull(loginUser) ? INTERFACE : loginUser.getUsername();
+        return Objects.isNull(loginUser) ? ADMIN : loginUser.getUsername();
     }
 
     public static String getUserId() {
         User loginUser = getLoginUser();
-        return Objects.isNull(loginUser) ? INTERFACE : loginUser.getId();
+        return Objects.isNull(loginUser) ? ADMIN : loginUser.getId();
     }
 }

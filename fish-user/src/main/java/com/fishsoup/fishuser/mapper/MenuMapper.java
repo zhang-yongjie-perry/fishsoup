@@ -2,7 +2,9 @@ package com.fishsoup.fishuser.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.fishsoup.entity.user.Menu;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,4 +19,10 @@ public interface MenuMapper extends BaseMapper<Menu> {
         "INNER JOIN f_menu m ON m.id = rm.menu_id " +
         "WHERE u.id = #{userId}")
     List<String> listPermsByUserId(String userId);
+
+    @Update("UPDATE f_menu SET STATUS = '0' WHERE ID = #{id}")
+    void invalidateMenuById(@Param("id") String id);
+
+    @Update("UPDATE f_menu SET STATUS = '1' WHERE ID = #{id}")
+    void activeMenuById(@Param("id") String id);
 }

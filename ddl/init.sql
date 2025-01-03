@@ -65,15 +65,15 @@ CREATE TABLE `f_menu` (
                           `id` varchar(32) NOT NULL,
                           `name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
                           `url` varchar(32) DEFAULT NULL,
-                          `route` varchar(32) DEFAULT NULL,
-                          `perms` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '权限字符串',
-                          `status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '1' COMMENT '0: 停用; 1: 正常',
+                          `sort` int DEFAULT 0,
+                          `perms` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '权限字符串',
+                          `status` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT '1' COMMENT '0: 停用; 1: 正常',
                           `remark` varchar(32) DEFAULT NULL,
                           `create_by` varchar(32) DEFAULT NULL,
                           `create_time` datetime DEFAULT NULL,
                           `update_by` varchar(32) DEFAULT NULL,
                           `update_time` datetime DEFAULT NULL,
-                          `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '0' COMMENT '0: 否; 1: 是',
+                          `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT '0' COMMENT '0: 否; 1: 是',
                           PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -104,3 +104,33 @@ CREATE TABLE `f_footstep` (
                               KEY `f_footsteps_user_id_IDX` (`user_id`) USING BTREE,
                               KEY `f_footsteps_del_flag_IDX` (`del_flag`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='浏览记录表';
+
+CREATE TABLE db_fish.f_menu_setting (
+                                        ID varchar(32) NOT NULL,
+                                        menu_id varchar(32) NOT NULL,
+                                        username varchar(20) NOT NULL,
+                                        sort int DEFAULT 0 NOT NULL,
+                                        display varchar() DEFAULT 1 NOT NULL,
+                                        update_time date NOT NULL,
+                                        CONSTRAINT f_menu_setting_PK PRIMARY KEY (ID),
+                                        CONSTRAINT f_menu_setting_UN UNIQUE KEY (menu_id,username)
+)
+    ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_0900_ai_ci
+COMMENT='菜单个性化设置';
+
+-- 赋权语句
+GRANT Alter ON db_fish.f_menu_setting TO 'fish'@'%';
+GRANT Create ON db_fish.f_menu_setting TO 'fish'@'%';
+GRANT Create view ON db_fish.f_menu_setting TO 'fish'@'%';
+GRANT Delete ON db_fish.f_menu_setting TO 'fish'@'%';
+GRANT Drop ON db_fish.f_menu_setting TO 'fish'@'%';
+GRANT Grant option ON db_fish.f_menu_setting TO 'fish'@'%';
+GRANT Index ON db_fish.f_menu_setting TO 'fish'@'%';
+GRANT Insert ON db_fish.f_menu_setting TO 'fish'@'%';
+GRANT References ON db_fish.f_menu_setting TO 'fish'@'%';
+GRANT Select ON db_fish.f_menu_setting TO 'fish'@'%';
+GRANT Show view ON db_fish.f_menu_setting TO 'fish'@'%';
+GRANT Trigger ON db_fish.f_menu_setting TO 'fish'@'%';
+GRANT Update ON db_fish.f_menu_setting TO 'fish'@'%';

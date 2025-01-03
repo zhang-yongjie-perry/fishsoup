@@ -86,3 +86,6 @@ spring:
         #登录所用的用户名与密码
         login-username: fish
         login-password: 123456
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
