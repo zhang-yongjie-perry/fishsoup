@@ -23,4 +23,9 @@ public class MemoController {
     public Memo getMemo(@PathVariable("date") String date) {
         return memoService.getMemo(date);
     }
+
+    @GetMapping("/list/{date}")
+    public Object getMemoList(@PathVariable("date") String date) {
+        return memoService.getMemoList(date);
+    }
 }

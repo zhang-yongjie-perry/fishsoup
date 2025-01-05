@@ -1,5 +1,8 @@
 package com.fishsoup.util;
 
+import com.fishsoup.entity.exception.BusinessException;
+
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -27,5 +30,14 @@ public class DateUtils {
 
     public static int compareTo(Date date1, Date date2) {
         return date1.compareTo(date2);
+    }
+
+    public static Date parse(String dateStr, String format) {
+        SimpleDateFormat sdf = new SimpleDateFormat(format);
+        try {
+            return sdf.parse(dateStr);
+        } catch (ParseException e) {
+            throw new BusinessException("日期解析异常:" + e.getMessage());
+        }
     }
 }

@@ -12,6 +12,9 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.util.*;
+
 @Service
 @RequiredArgsConstructor
 public class MemoServiceImpl implements MemoService {
@@ -46,4 +49,47 @@ public class MemoServiceImpl implements MemoService {
         String loginName = UserUtils.getLoginName();
         return mongoTemplate.findOne(Query.query(Criteria.where("username").is(loginName).and("date").is(date)), Memo.class);
     }
+
+    @Override
+    public Map<String, Object> getMemoList(String dateStr) {
+        Date date = DateUtils.parse(dateStr, DateUtils.YYYY_MM_DD);
+        Date past = DateUtils.addTime(date, -(Duration.ofDays(45).getSeconds() * 1000));
+        Date future = DateUtils.addTime(date, Duration.ofDays(45).getSeconds() * 1000);
+        Query query = new Query(Criteria.where("date")
+            .gte(DateUtils.formatDate(past, DateUtils.YYYY_MM_DD))
+            .lte(DateUtils.formatDate(future, DateUtils.YYYY_MM_DD))
+            .and("username").is(UserUtils.getLoginName()));
+        List<Memo> memos = mongoTemplate.find(query, Memo.class);
+        Map<String, Object> map = new HashMap<>();
+        memos.forEach(memo -> {
+            List<Map<String, String>> todoList = new ArrayList<>();
+            String[] split = memo.getContent().split("\n");
+            for (String content : split) {
+                Map<String, String> todoMap = new HashMap<>();
+                if (content.startsWith("#")) {
+                    content = content.substring(1);
+                    todoMap.put("type", "warning");
+                } else if (content.startsWith("$")) {
+                    content = content.substring(1);
+                    todoMap.put("type", "success");
+                } else {
+                    if (todoList.isEmpty()) {
+                        todoMap.put("type", "warning");
+                        todoMap.put("content", content);
+                        todoList.add(todoMap);
+                        continue;
+                    }
+                    Map<String, String> last = todoList.getLast();
+                    last.put("content", last.get("content") + "\n" + content);
+                    continue;
+                }
+                todoMap.put("content", content);
+                todoList.add(todoMap);
+            }
+            map.put(memo.getDate(), todoList);
+        });
+        return map;
+    }
+
+
 }
