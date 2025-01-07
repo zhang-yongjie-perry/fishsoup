@@ -1,0 +1,1 @@
+java -Dserver.port=8999 -Dcsp.sentinel.dashboard.server=localhost:8999 -Dproject.name=sentinel-dashboard -Dauth.username=perry -Dauth.password=123456 -jar sentinel-dashboard.jar

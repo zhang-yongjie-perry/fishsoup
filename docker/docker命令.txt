@@ -189,3 +189,38 @@ docker network connect fish-network 8f184a89d2200668b390475f5a1d76b11a06a98f5bf6
 13. 阿里云加速
 $ docker login --username=梦沉书远 crpi-gprv8r1fcnlyohht.cn-qingdao.personal.cr.aliyuncs.com
 密码 15269603184vae
+
+14. sentinel
+docker run --name sentinel-dashboard -p 8719:8719 -p 8090:8080 -e USERNAME=perry -e PASSWORD=123456 -d sentinel-dashboard:1.8.8
+
+sentinel镜像自己打的, 其dockerfile内容如下:
+FROM openjdk:21-jdk-alpine
+WORKDIR /sentinel
+COPY sentinel-dashboard.jar /sentinel/sentinel-dashboard.jar
+ENV VERSION 1.8.8 \
+	DASHBOARD_SERVER localhost \
+	USERNAME sentinel \
+	PASSWORD sentinel
+EXPOSE 8719
+EXPOSE 8080
+CMD ["java", "-Dcsp.sentinel.dashboard.server=${DASHBOARD_SERVER}:8080", "-Dauth.username=${USERNAME}", "-Dauth.password=${PASSWORD}", "-Dserver.port=8080", "-Dproject.name=sentinel-dashboard", "-jar", "/sentinel/sentinel-dashboard.jar"]
+
+jdk镜像自己打的, 其dockerfile内容如下:
+# 使用 Alpine Linux 作为基础镜像
+FROM alpine:latest
+
+# 设置语言环境变量为中文
+ENV LANG=zh_CN.UTF-8
+
+# 安装所需的软件包，包括中文字体和中文语言支持
+RUN apk add --no-cache \
+        ttf-dejavu \
+        fontconfig \
+        tzdata \
+        openjdk21 \
+        && \
+    cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone
+
+# 设置 JAVA_HOME 环境变量
+ENV JAVA_HOME=/usr/lib/jvm/default-jvm

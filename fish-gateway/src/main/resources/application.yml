@@ -23,6 +23,12 @@ spring:
         server-addr: ${NACOS_SERVER_ADDR:localhost}:8848
       username: ${NACOS_USERNAME:}
       password: ${NACOS_PASSWORD:}
+    sentinel:
+      transport:
+        port: 8719
+        dashboard: ${DASHBOARD_SERVER:localhost}:8090
+      filter:
+        enabled: false
     gateway:
 #      globalcors:
 #        cors-configurations:
@@ -35,23 +41,23 @@ spring:
         locator:
           enabled: true
       routes:
-        - id: fish_user_route1
+        - id: fish_user_auth_route
           uri: lb://fish-user
           predicates:
             - Path=/user/auth/**
 
-        - id: fish_user_route2
+        - id: fish_user_route
           uri: lb://fish-user
           predicates:
             - Path=/user/**
             - Header=Authorization, ^Bearer .+
 
-        - id: fish_web_route1
+        - id: fish_web_image_download_route
           uri: lb://fish-web
           predicates:
             - Path=/web/image/download/**
 
-        - id: fish_web_route2
+        - id: fish_web_route
           uri: lb://fish-web
           predicates:
             - Path=/web/**
