@@ -6,12 +6,12 @@ server:
 spring:
 
   data:
+    redis:
+      url: redis://${REDIS_PASSWORD:123456}@${REDIS_ADDR:localhost}:6379/0
     mongodb:
       uri: mongodb://admin:123456@${MONGO_DB_ADDR:localhost}:27017/fish?authSource=fish
-
   application:
     name: fish-das
-
   threads:
     virtual:
       enabled: true

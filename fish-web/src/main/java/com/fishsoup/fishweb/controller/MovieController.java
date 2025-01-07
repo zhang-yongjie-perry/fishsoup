@@ -30,4 +30,15 @@ public class MovieController {
         movieService.searchTvMovieByTitle(title);
         return ResponseResult.success();
     }
+
+    @GetMapping("/search/nunu/{title}")
+    public ResponseResult searchNunuTvMovieByTitle(@PathVariable("title") String title) {
+        movieService.searchNunuTvMovieByTitle(title);
+        return ResponseResult.success();
+    }
+
+    @GetMapping("/m3u8/nunu/{sourceId}")
+    public String getNunuM3u8Source(@PathVariable("sourceId") String sourceId) {
+        return movieService.getNunuM3u8Resource(sourceId);
+    }
 }

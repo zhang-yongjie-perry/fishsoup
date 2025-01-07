@@ -78,4 +78,19 @@ public class OkHttpUtils {
             throw new RuntimeException(e);
         }
     }
+
+    public String doGetRequest(String url, Headers headers) {
+        try (Response response = client.newCall(new Request.Builder().url(url).headers(headers).get().build()).execute()) {
+            if (!response.isSuccessful()) {
+                return "";
+            }
+            if (response.body() == null) {
+                return "";
+            }
+            return response.body().string();
+        } catch (IOException ioException) {
+            log.error("请求{}异常: {}", url, ioException.getMessage(), ioException);
+            return "";
+        }
+    }
 }

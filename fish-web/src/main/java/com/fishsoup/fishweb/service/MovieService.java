@@ -7,11 +7,13 @@ import com.fishsoup.entity.movie.TvMovie;
 @SuppressWarnings("all")
 public interface MovieService {
 
-    String helloDas();
-
     IPage<TvMovie> pageTvMovies(TvMovie conditions, int pageNum, int pageSize);
 
     TvMovie findTvMovieById(String id) throws BusinessException;
 
     boolean searchTvMovieByTitle(String title) throws BusinessException;
+
+    boolean searchNunuTvMovieByTitle(String title) throws BusinessException;
+
+    String getNunuM3u8Resource(String sourceId);
 }

@@ -12,7 +12,7 @@ public class StringUtils {
 
     public static final char PACKAGE_SEPARATOR_CHAR = '.';
 
-    public static final char PACKAGE_COLON_CHAR = ':';
+    public static final String PACKAGE_COLON_CHAR = ":";
 
     public static final String NUM_REGEX = "\\d+";
 

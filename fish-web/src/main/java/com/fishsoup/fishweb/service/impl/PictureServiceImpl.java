@@ -2,11 +2,16 @@ package com.fishsoup.fishweb.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fishsoup.entity.exception.BusinessException;
 import com.fishsoup.entity.pic.Picture;
 import com.fishsoup.fishweb.feignService.DasFeignService;
 import com.fishsoup.fishweb.service.PictureService;
+import com.fishsoup.fishweb.util.UserUtils;
+import com.fishsoup.util.DateUtils;
 import com.fishsoup.util.StringUtils;
 import lombok.RequiredArgsConstructor;
+import org.redisson.api.RBucket;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -14,6 +19,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,6 +32,8 @@ public class PictureServiceImpl implements PictureService {
     private final MongoTemplate mongoTemplate;
 
     private final DasFeignService dasFeignService;
+
+    private final RedissonClient redisson;
 
     @Override
     public List<Picture> listPics8k() {
@@ -56,6 +64,16 @@ public class PictureServiceImpl implements PictureService {
 
     @Override
     public boolean searchPics() {
+        RBucket<Integer> bucket = redisson.getBucket("crawlPicFromNetwork:" + UserUtils.getLoginName());
+        Integer crawlNum = bucket.get();
+        if (crawlNum == null) {
+            bucket.set(10);
+            bucket.expire(Duration.ofSeconds(DateUtils.getSameDayExpirationTime()));
+            crawlNum = bucket.get();
+        }
+        if (crawlNum == 0) {
+            throw new BusinessException("今日搜索次数(10次)已用完");
+        }
         picSearchCount.compareAndSet(30, 0);
         try (ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor()) {
             executorService.submit(() -> {
@@ -65,6 +83,7 @@ public class PictureServiceImpl implements PictureService {
                 dasFeignService.crawl4kPic(picSearchCount.getAndIncrement());
             });
         }
+        bucket.set(--crawlNum);
         return true;
     }
 }

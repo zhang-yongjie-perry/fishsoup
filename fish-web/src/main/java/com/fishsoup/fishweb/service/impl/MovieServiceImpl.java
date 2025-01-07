@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fishsoup.entity.exception.BusinessException;
+import com.fishsoup.entity.http.ResponseResult;
 import com.fishsoup.entity.movie.TvMovie;
 import com.fishsoup.fishweb.annotation.FootstepLog;
 import com.fishsoup.fishweb.domain.Footstep;
@@ -15,6 +16,8 @@ import com.fishsoup.util.CollectionUtils;
 import com.fishsoup.util.DateUtils;
 import com.fishsoup.util.StringUtils;
 import lombok.RequiredArgsConstructor;
+import org.redisson.api.RBucket;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -22,11 +25,13 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
 import static com.fishsoup.enums.MovieStatusEnum.COMPLETED;
+import static com.fishsoup.enums.ResponseCodeEnum.FAILURE;
 import static com.fishsoup.fishweb.enums.ArtworkTypeEnum.MOVIE;
 
 @Service
@@ -39,10 +44,7 @@ public class MovieServiceImpl implements MovieService {
 
     private final FootstepMapper footstepMapper;
 
-    @Override
-    public String helloDas() {
-        return dasFeignService.helloDas();
-    }
+    private final RedissonClient redisson;
 
     @Override
     public IPage<TvMovie> pageTvMovies(TvMovie conditions, int pageNum, int pageSize) {
@@ -70,7 +72,7 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     @FootstepLog(MOVIE)
-    public TvMovie findTvMovieById(String id) throws BusinessException {
+    public TvMovie findTvMovieById(String id) {
         TvMovie mv = mongoTemplate.findById(id, TvMovie.class);
         if (mv == null) {
             return null;
@@ -91,19 +93,71 @@ public class MovieServiceImpl implements MovieService {
                 .setStartTime(footsteps.getFirst().getStartTime());
         }
         // 通知fish-das去获取剧集信息
-        boolean success = dasFeignService.crawlEpisodesByMovieId(id);
-        if (!success) {
-            throw new BusinessException("剧集信息获取失败, 请联系管理员");
+        ResponseResult responseResult = dasFeignService.crawlEpisodesByMovieId(id);
+        if (Objects.isNull(responseResult)) {
+            throw new BusinessException("请求超时, 请稍后再试");
+        }
+        if (Objects.equals(responseResult.getCode(), FAILURE.getCode())) {
+            throw new BusinessException(responseResult.getMsg());
         }
         return mongoTemplate.findById(id, TvMovie.class);
     }
 
     @Override
-    public boolean searchTvMovieByTitle(String title) throws BusinessException {
-        boolean success= dasFeignService.crawlMoviesByName(title);
-        if (!success) {
-            throw new BusinessException("视频获取失败, 请联系管理员");
+    public boolean searchTvMovieByTitle(String title) {
+        RBucket<Integer> bucket = redisson.getBucket("crawlMv:" + UserUtils.getLoginName());
+        Integer crawlNum = bucket.get();
+        if (crawlNum == null) {
+            bucket.set(5);
+            bucket.expire(Duration.ofSeconds(DateUtils.getSameDayExpirationTime()));
+            crawlNum = bucket.get();
         }
+        if (crawlNum == 0) {
+            throw new BusinessException("今日搜索次数(5次)已用完");
+        }
+        ResponseResult responseResult = dasFeignService.crawlMoviesByName(title);
+        if (Objects.isNull(responseResult)) {
+            throw new BusinessException("请求超时, 请稍后再试");
+        }
+        if (Objects.equals(responseResult.getCode(), FAILURE.getCode())) {
+            throw new BusinessException(responseResult.getMsg());
+        }
+        bucket.set(--crawlNum);
         return true;
+    }
+
+    @Override
+    public boolean searchNunuTvMovieByTitle(String title) {
+        RBucket<Integer> bucket = redisson.getBucket("crawlNunuMv:" + UserUtils.getLoginName());
+        Integer crawlNum = bucket.get();
+        if (crawlNum == null) {
+            bucket.set(5);
+            bucket.expire(Duration.ofSeconds(DateUtils.getSameDayExpirationTime()));
+            crawlNum = bucket.get();
+        }
+        if (crawlNum == 0) {
+            throw new BusinessException("今日搜索次数(5次)已用完");
+        }
+        ResponseResult responseResult = dasFeignService.crawlNunuMoviesByName(title);
+        if (Objects.isNull(responseResult)) {
+            throw new BusinessException("请求超时, 请稍后再试");
+        }
+        if (Objects.equals(responseResult.getCode(), FAILURE.getCode())) {
+            throw new BusinessException(responseResult.getMsg());
+        }
+        bucket.set(--crawlNum);
+        return true;
+    }
+
+    @Override
+    public String getNunuM3u8Resource(String sourceId) {
+        ResponseResult responseResult = dasFeignService.crawlNunuM3u8Source(sourceId);
+        if (Objects.isNull(responseResult)) {
+            throw new BusinessException("请求超时, 请稍后再试");
+        }
+        if (Objects.equals(responseResult.getCode(), FAILURE.getCode())) {
+            throw new BusinessException(responseResult.getMsg());
+        }
+        return responseResult.getData().toString();
     }
 }

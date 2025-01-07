@@ -4,6 +4,9 @@ import com.fishsoup.entity.exception.BusinessException;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 public class DateUtils {
@@ -39,5 +42,17 @@ public class DateUtils {
         } catch (ParseException e) {
             throw new BusinessException("日期解析异常:" + e.getMessage());
         }
+    }
+
+    public static long getSameDayExpirationTime() {
+        // 获取当前时间
+        LocalDateTime now = LocalDateTime.now();
+
+        // 获取今天的午夜时间
+        LocalDateTime midnight = LocalDateTime.of(now.toLocalDate(), LocalTime.MIDNIGHT)
+            .plusDays(1); // 明天的午夜即为今晚的午夜之后的时间
+
+        // 计算时间差并转换为秒
+        return ChronoUnit.SECONDS.between(now, midnight);
     }
 }

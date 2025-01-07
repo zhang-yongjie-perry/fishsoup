@@ -23,6 +23,7 @@ public class Memo implements Serializable {
     private String id;
     private String username;
     private String date;
+    private String color;
     private String content;
     private Date updateTime;
 }

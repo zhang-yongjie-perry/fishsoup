@@ -26,7 +26,6 @@ public class QqNewsServiceImpl implements HotNewsService {
     private static final String BASE_URL = "https://www.qq.com";
     private static final String ENTERTAINMENT_URL = "https://i.news.qq.com/gw/event/pc_hot_ranking_list?ids_hash=&offset=0&page_size=20&appver=15.5_qqnews_7.1.60&rank_id=ent";
     private static final String TECH_URL = "https://i.news.qq.com/web_feed/getPcPageList";
-    private final static String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
     private final static Headers HEADERS = new Headers.Builder().add("referer", BASE_URL).add("user-agent", USER_AGENT).build();
     private final static Headers JSON_HEADERS = new Headers.Builder().add("referer", BASE_URL)
         .add("content-type", "application/json; charset=utf-8")

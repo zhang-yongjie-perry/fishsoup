@@ -28,8 +28,9 @@ public class MemoServiceImpl implements MemoService {
 
         Update update = new Update();
         update.set("username", loginName);
-        update.set("content", memo.getContent());
+        update.set("content", StringUtils.hasText(memo.getContent()) ? memo.getContent() : "");
         update.set("updateTime", DateUtils.now());
+        update.set("color", StringUtils.hasText(memo.getColor()) ? memo.getColor() : "transparent");
 
         Query query = new Query(Criteria.where("username").is(loginName));
         if (StringUtils.hasText(memo.getDate())) {
@@ -47,7 +48,8 @@ public class MemoServiceImpl implements MemoService {
     public Memo getMemo(String date) {
         date = StringUtils.hasText(date) ? date.trim() : DateUtils.now(DateUtils.YYYY_MM_DD);
         String loginName = UserUtils.getLoginName();
-        return mongoTemplate.findOne(Query.query(Criteria.where("username").is(loginName).and("date").is(date)), Memo.class);
+        return mongoTemplate.findOne(Query.query(Criteria.where("username").is(loginName)
+            .and("date").is(date)), Memo.class);
     }
 
     @Override
@@ -63,7 +65,8 @@ public class MemoServiceImpl implements MemoService {
         Map<String, Object> map = new HashMap<>();
         memos.forEach(memo -> {
             List<Map<String, String>> todoList = new ArrayList<>();
-            String[] split = memo.getContent().split("\n");
+            String[] split = StringUtils.hasText(memo.getContent()) ? memo.getContent().split("\n")
+                : new String[0];
             for (String content : split) {
                 Map<String, String> todoMap = new HashMap<>();
                 if (content.startsWith("#")) {
@@ -86,7 +89,10 @@ public class MemoServiceImpl implements MemoService {
                 todoMap.put("content", content);
                 todoList.add(todoMap);
             }
-            map.put(memo.getDate(), todoList);
+            Map<String, Object> todoMap = new HashMap<>();
+            todoMap.put("todo", todoList);
+            todoMap.put("color", StringUtils.hasText(memo.getColor()) ? memo.getColor() : "transparent");
+            map.put(memo.getDate(), todoMap);
         });
         return map;
     }

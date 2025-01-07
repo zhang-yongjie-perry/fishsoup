@@ -1,10 +1,13 @@
 package com.fishsoup.fishdas.controller;
 
+import com.fishsoup.annotation.DistributedLock;
+import com.fishsoup.entity.http.ResponseResult;
 import com.fishsoup.entity.news.HotNews;
 import com.fishsoup.fishdas.service.HotNewsService;
 import com.fishsoup.fishdas.service.MovieService;
 import com.fishsoup.fishdas.service.PictureService;
 import com.fishsoup.util.DateUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
 
+@Slf4j
 @RestController
 @RequestMapping("/crawl")
 public class CrawlNetworkResourceController {
@@ -39,59 +43,73 @@ public class CrawlNetworkResourceController {
 
     @Autowired
     @Qualifier("QqNewsServiceImpl")
+
     private HotNewsService qqNewsServiceImpl;
 
-    @GetMapping("/hello")
-    public String helloDas() {
-        System.out.println("hello");
-        return "hello DAS";
-    }
+    @Autowired
+    @Qualifier("WeiboNewsServiceImpl")
+    private HotNewsService weiboNewsServiceImpl;
 
     @GetMapping("/movie/{title}")
-    public boolean crawlMoviesByName(@PathVariable("title") String title) {
-        return movieServiceImpl.crawlMoviesByName(title);
+    @DistributedLock(name = "crawlMoviesByName", leaseTime = 60 * 30)
+    public ResponseResult crawlMoviesByName(@PathVariable("title") String title) {
+        movieServiceImpl.crawlMoviesByName(title);
+        return ResponseResult.success();
     }
 
     @GetMapping("/episode/{mvId}")
-    public boolean crawlEpisodesByMovieId(@PathVariable("mvId") String mvId) {
-        return movieServiceImpl.crawlEpisodesByMovieId(mvId);
+    @DistributedLock(name = "crawlEpisodesByMovieId", leaseTime = 60 * 30)
+    public ResponseResult crawlEpisodesByMovieId(@PathVariable("mvId") String mvId) {
+        movieServiceImpl.crawlEpisodesByMovieId(mvId);
+        return ResponseResult.success();
     }
 
     @GetMapping("/movie/nunu/{title}")
-    public boolean crawlNunuMoviesByName(@PathVariable("title") String title) {
-        return nunuMovieServiceImpl.crawlMoviesByName(title);
-    }
-
-    @GetMapping("/episode/nunu/{mvId}")
-    public boolean crawlNunuEpisodesByMovieId(@PathVariable("mvId") String mvId) {
-        return nunuMovieServiceImpl.crawlEpisodesByMovieId(mvId);
+    @DistributedLock(name = "crawlNunuMoviesByName", leaseTime = 60 * 30)
+    public ResponseResult crawlNunuMoviesByName(@PathVariable("title") String title) {
+        nunuMovieServiceImpl.crawlMoviesByName(title);
+        return ResponseResult.success();
     }
 
     @GetMapping("/m3u8/nunu/{sourceId}")
-    public String crawlNunuM3u8Source(@PathVariable("sourceId") String sourceId) {
-        return nunuMovieServiceImpl.getM3u8Resource(sourceId);
+    public ResponseResult crawlNunuM3u8Source(@PathVariable("sourceId") String sourceId) {
+        String m3u8Resource = nunuMovieServiceImpl.getM3u8Resource(sourceId);
+        return ResponseResult.success(m3u8Resource);
     }
 
     @GetMapping("/picture/8k/{pageNum}")
-    public boolean crawl8kPic(@PathVariable("pageNum") int pageNum) {
-        return pictureService.crawl8kPic(pageNum);
+    @DistributedLock(name = "crawl8kPic", leaseTime = 60 * 20)
+    public ResponseResult crawl8kPic(@PathVariable("pageNum") int pageNum) {
+        pictureService.crawl8kPic(pageNum);
+        return ResponseResult.success();
     }
 
     @GetMapping("/picture/4k/{pageNum}")
-    public boolean crawl4kPic(@PathVariable("pageNum") int pageNum) {
-        return pictureService.crawl4kPic(pageNum);
+    @DistributedLock(name = "crawl4kPic", leaseTime = 60 * 20)
+    public ResponseResult crawl4kPic(@PathVariable("pageNum") int pageNum) {
+        pictureService.crawl4kPic(pageNum);
+        return ResponseResult.success();
     }
 
-    @Scheduled(cron = "0 0 7-18 * * *")
+    @Scheduled(cron = "0 0 7-22 * * *")
+    @DistributedLock(name = "crawlChinaNews")
     @GetMapping("/hotNews/chinaNews")
     public boolean crawlChinaNews() {
         return chinaNewsServiceImpl.crawlHotNews();
     }
 
-    @Scheduled(cron = "0 0 7-18 * * *")
+    @Scheduled(cron = "0 0 7-22 * * *")
+    @DistributedLock(name = "qqNews")
     @GetMapping("/hotNews/qqNews")
     public boolean crawlQqNews() {
         return qqNewsServiceImpl.crawlHotNews();
+    }
+
+    @Scheduled(cron = "0 0/30 7-22 * * *")
+    @DistributedLock(name = "weiboNews")
+    @GetMapping("/hotNews/weiboNews")
+    public boolean crawlWeiboNews() {
+        return weiboNewsServiceImpl.crawlHotNews();
     }
 
     /**
