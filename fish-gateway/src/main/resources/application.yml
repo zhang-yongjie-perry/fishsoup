@@ -26,7 +26,7 @@ spring:
     sentinel:
       transport:
         port: 8719
-        dashboard: ${DASHBOARD_SERVER:localhost}:8090
+        dashboard: ${DASHBOARD_SERVER:localhost}:${DASHBOARD_PORT:8090}
       filter:
         enabled: false
     gateway:
