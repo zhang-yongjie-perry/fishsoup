@@ -45,8 +45,8 @@ public class UserController {
     public List<User> listChatUsers() {
         List<User> users = userService.listChatUsers();
         users.forEach(user -> {
-            RBucket<String> bucket = redissonClient.getBucket("fish:chat:" + user.getUsername());
-            OnlineStatusEnum status = StringUtils.hasText(bucket.get()) ? OnlineStatusEnum.ONLINE : OnlineStatusEnum.OFFLINE;
+            RBucket<Integer> bucket = redissonClient.getBucket("fish:chat:" + user.getUsername());
+            OnlineStatusEnum status = bucket.get() != null && bucket.get() > 0 ? OnlineStatusEnum.ONLINE : OnlineStatusEnum.OFFLINE;
             user.setOnlineStatus(status);
         });
         return users;

@@ -1,8 +1,8 @@
 package com.fishsoup.fishchat.netty;
 
 import com.alibaba.fastjson2.JSON;
-import com.fishsoup.enums.YesNoEnum;
 import com.fishsoup.fishchat.domain.ChatUser;
+import com.fishsoup.util.CollectionUtils;
 import com.fishsoup.util.JWTUtils;
 import com.fishsoup.util.StringUtils;
 import io.jsonwebtoken.Claims;
@@ -13,9 +13,7 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.fishsoup.enums.OnlineStatusEnum.OFFLINE;
@@ -26,7 +24,7 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
 
     private final RedissonClient redissonClient;
 
-    public final static Map<String, Channel> channelMap = new ConcurrentHashMap<>();
+    public final static Map<String, Set<Channel>> channelMap = new ConcurrentHashMap<>();
 
     NettyServerHandler(RedissonClient redissonClient) {
         this.redissonClient = redissonClient;
@@ -39,27 +37,32 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     public void channelInactive(ChannelHandlerContext ctx) {
-        Iterator<Map.Entry<String, Channel>> iterator = channelMap.entrySet().iterator();
-        String username = "";
-        while (iterator.hasNext()) {
-            Map.Entry<String, Channel> next = iterator.next();
-            if (Objects.equals(next.getValue(), ctx.channel())) {
-                username = next.getKey();
-                iterator.remove();
+        RBucket<String> ipBucket = redissonClient.getBucket("fish:userIp:" + ctx.channel().remoteAddress().toString());
+        String username = ipBucket.get();
+        if (!StringUtils.hasText(username)) {
+            return;
+        }
+        ipBucket.delete();
+
+        for (Map.Entry<String, Set<Channel>> next : channelMap.entrySet()) {
+            if (Objects.equals(next.getKey(), username)) {
+                next.getValue().removeIf(channel -> Objects.equals(ctx.channel(), channel));
+                ctx.channel().close();
                 break;
             }
         }
 
-        if (StringUtils.hasText(username)) {
+        RBucket<Integer> bucket = redissonClient.getBucket("fish:chat:" + username);
+        Integer num = bucket.get();
+        if (num != null && --num > 0) {
+            bucket.set(num);
             return;
         }
-
-        RBucket<Channel> bucket = redissonClient.getBucket("fish:chat:" + username);
         bucket.delete();
 
         ChatUser chatUser = new ChatUser().setUsername(username).setToUsername(OFFLINE.name());
-        channelMap.forEach((key, channel)
-            -> channel.writeAndFlush(new TextWebSocketFrame(JSON.toJSONString(chatUser))));
+        channelMap.forEach((key, channels)
+            -> channels.forEach(channel -> channel.writeAndFlush(new TextWebSocketFrame(JSON.toJSONString(chatUser)))));
     }
 
     @Override
@@ -89,15 +92,43 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
         }
 
         ChatUser user = JSON.parseObject(claims.getSubject(), ChatUser.class);
+        RBucket<String> ipBucket = redissonClient.getBucket("fish:userIp:" + ctx.channel().remoteAddress().toString());
+        String rIp = ipBucket.get();
+        RBucket<Integer> bucket = redissonClient.getBucket("fish:chat:" + user.getUsername());
+        Integer num = bucket.get();
+        if (num == null) {
+            bucket.set(1);
+            ipBucket.set(user.getUsername());
+        } else if (!StringUtils.hasText(rIp)) {
+            ipBucket.set(user.getUsername());
+            // ip未登录过才能加1
+            bucket.set(num + 1);
+        }
 
-        RBucket<String> bucket = redissonClient.getBucket("fish:chat:" + user.getUsername());
-        bucket.set(YesNoEnum.YES.getCode());
-        channelMap.put(user.getUsername(), ctx.channel());
+        Set<Channel> channels = channelMap.get(user.getUsername());
+        if (CollectionUtils.isEmpty(channels)) {
+            Set<Channel> channelList = new HashSet<>();
+            channelList.add(ctx.channel());
+            channelMap.put(user.getUsername(), channelList);
+        } else {
+            channels.add(ctx.channel());
+        }
 
         ChatUser chatUser = new ChatUser().setUsername(user.getUsername()).setToUsername(ONLINE.name());
-        channelMap.forEach((key, channel)
-            -> channel.writeAndFlush(new TextWebSocketFrame(JSON.toJSONString(chatUser))));
-        // todo 同步历史消息
+        channelMap.forEach((key, list)
+            -> list.forEach(channel -> channel.writeAndFlush(new TextWebSocketFrame(JSON.toJSONString(chatUser)))));
+        // 同步历史消息
+        RBucket<String> chatBucket = redissonClient.getBucket("fish:chatContent:" + chatUser.getUsername());
+        String content = chatBucket.get();
+        if (!StringUtils.hasText(content)) {
+            super.channelRead(ctx, msg);
+            return;
+        }
+        String[] split = content.split("<///>");
+        for (String c : split) {
+            ctx.writeAndFlush(new TextWebSocketFrame(c));
+        }
+        chatBucket.delete();
         super.channelRead(ctx, msg);
     }
 }
