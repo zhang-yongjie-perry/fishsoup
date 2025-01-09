@@ -36,8 +36,10 @@ public class Creation implements Serializable {
     private VisibleRangeEnum visibleRange;
     private String content;
     private String createBy;
+    @JsonFormat(pattern = DateUtils.YYYY_MM_DD_HH_MI_SS, timezone = "GMT+8")
     private Date createTime;
     private String updateBy;
+    @JsonFormat(pattern = DateUtils.YYYY_MM_DD_HH_MI_SS, timezone = "GMT+8")
     private Date updateTime;
     @Transient
     private List<String> toDelImages;
