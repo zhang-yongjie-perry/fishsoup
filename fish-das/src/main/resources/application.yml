@@ -4,7 +4,6 @@ server:
     context-path: /das
 
 spring:
-
   data:
     redis:
       url: redis://${REDIS_PASSWORD:123456}@${REDIS_ADDR:localhost}:6379/0
@@ -32,3 +31,16 @@ logging:
 #  pattern:
 #    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36}: %msg%n"
 #    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36}: %msg%n"
+
+management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 0.1
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  zipkin:
+    tracing:
+      endpoint: http://${ZIPKIN_SERVER_ADDR:localhost}:9411/api/v2/spans

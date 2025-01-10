@@ -89,3 +89,16 @@ spring:
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
+
+management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 0.1
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  zipkin:
+    tracing:
+      endpoint: http://${ZIPKIN_SERVER_ADDR:localhost}:9411/api/v2/spans

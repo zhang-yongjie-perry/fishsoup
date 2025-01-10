@@ -50,6 +50,8 @@
         <!-- 由于 shedlock-spring 和 shedlock-redis 的版本存在依赖冲突, 所以不使用用 shedlock-spring 实现分布式定时任务 -->
         <shedlock.version>4.23.0</shedlock.version>
         <shedlock-provider-redis.version>6.0.2</shedlock-provider-redis.version>
+        <micrometer-tracing.version>1.2.4</micrometer-tracing.version>
+        <feign-micrometer.version>13.5</feign-micrometer.version>
     </properties>
 
     <dependencyManagement>
@@ -151,6 +153,18 @@
                 <groupId>net.javacrumbs.shedlock</groupId>
                 <artifactId>shedlock-provider-redis-spring</artifactId>
                 <version>${shedlock-provider-redis.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-tracing-bom</artifactId>
+                <version>${micrometer-tracing.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.github.openfeign</groupId>
+                <artifactId>feign-micrometer</artifactId>
+                <version>${feign-micrometer.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
