@@ -17,6 +17,9 @@ spring:
       connect-timeout: 3000
       # 命令执行超时时间 3000 毫秒
       timeout: 3000
+  config:
+    import:
+      - optional:nacos:zipkin-config.yml?refreshEnabled=true
   cloud:
     nacos:
       discovery:
@@ -78,10 +81,10 @@ spring:
 #            - Header=Authorization, ^Bearer .+
 
 management:
-  tracing:
-    enabled: true
-    sampling:
-      probability: 0.1
+#  tracing:
+#    enabled: true
+#    sampling:
+#      probability: 0.1
   endpoints:
     web:
       exposure:

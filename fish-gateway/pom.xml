@@ -97,9 +97,15 @@
             <artifactId>zipkin-reporter-brave</artifactId>
         </dependency>
         <!-- 整合 feign和micrometer -->
+<!--        <dependency>-->
+<!--            <groupId>io.github.openfeign</groupId>-->
+<!--            <artifactId>feign-micrometer</artifactId>-->
+<!--        </dependency>-->
+
+        <!-- 配置中心 -->
         <dependency>
-            <groupId>io.github.openfeign</groupId>
-            <artifactId>feign-micrometer</artifactId>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
         </dependency>
 
         <!-- 基础开发组件 -->

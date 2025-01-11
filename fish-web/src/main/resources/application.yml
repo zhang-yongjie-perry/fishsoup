@@ -20,6 +20,9 @@ spring:
         server-addr: ${NACOS_SERVER_ADDR:localhost}:8848
       username: ${NACOS_USERNAME:}
       password: ${NACOS_PASSWORD:}
+  config:
+    import:
+      - optional:nacos:zipkin-config.yml?refreshEnabled=true
   data:
     redis:
       url: redis://${REDIS_PASSWORD:123456}@${REDIS_ADDR:localhost}:6379/0
@@ -91,10 +94,10 @@ mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
 
 management:
-  tracing:
-    enabled: true
-    sampling:
-      probability: 0.1
+#  tracing:
+#    enabled: true
+#    sampling:
+#      probability: 0.1
   endpoints:
     web:
       exposure:

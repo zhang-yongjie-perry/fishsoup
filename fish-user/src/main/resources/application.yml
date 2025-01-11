@@ -10,6 +10,9 @@ spring:
         server-addr: ${NACOS_SERVER_ADDR:localhost}:8848
       username: ${NACOS_USERNAME:}
       password: ${NACOS_PASSWORD:}
+  config:
+    import:
+      - optional:nacos:zipkin-config.yml?refreshEnabled=true
   application:
     name: fish-user
   #数据库连接配置
@@ -111,10 +114,10 @@ seata:
       paas-protocol-group: default
 
 management:
-  tracing:
-    enabled: true
-    sampling:
-      probability: 0.1
+#  tracing:
+#    enabled: true
+#    sampling:
+#      probability: 0.1
   endpoints:
     web:
       exposure:

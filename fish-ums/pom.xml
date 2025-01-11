@@ -140,9 +140,11 @@
             <artifactId>feign-micrometer</artifactId>
             <version>13.5</version>
         </dependency>
+
+        <!-- 配置中心 -->
         <dependency>
-            <groupId>io.zipkin.brave</groupId>
-            <artifactId>brave-instrumentation-spring-web</artifactId>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
         </dependency>
 
         <!-- 基础开发工具包 -->
