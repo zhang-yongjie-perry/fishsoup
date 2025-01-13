@@ -19,6 +19,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -42,7 +43,6 @@ public class CreationServiceImpl implements CreationService {
         }
         creation.setUpdateBy(UserUtils.getLoginName());
         creation.setUpdateTime(DateUtils.now());
-        creation.setTime(creation.getUpdateTime());
         if (StringUtils.hasText(creation.getId())) {
             Query query = new Query(Criteria.where("_id").is(creation.getId()));
             Update update = new Update();
@@ -64,10 +64,14 @@ public class CreationServiceImpl implements CreationService {
             if (StringUtils.hasText(creation.getContent())) {
                 update.set("content", creation.getContent());
             }
-            if (!CollectionUtils.isEmpty(creation.getTags())) {
+            if (Objects.nonNull(creation.getCreateTime())) {
+                update.set("time", creation.getCreateTime());
+            }
+            if (CollectionUtils.isEmpty(creation.getTags())) {
+                update.set("tags", new ArrayList<String>());
+            } else {
                 update.set("tags", creation.getTags());
             }
-            update.set("time", creation.getTime());
             update.set("updateBy", creation.getUpdateBy());
             update.set("updateTime", creation.getUpdateTime());
             mongoTemplate.updateFirst(query, update, Creation.class);
@@ -75,6 +79,7 @@ public class CreationServiceImpl implements CreationService {
         }
         creation.setCreateBy(creation.getUpdateBy());
         creation.setCreateTime(creation.getUpdateTime());
+        creation.setTime(creation.getCreateTime());
         return mongoTemplate.insert(creation).getId();
     }
 
