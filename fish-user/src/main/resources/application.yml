@@ -125,3 +125,9 @@ management:
   zipkin:
     tracing:
       endpoint: http://${ZIPKIN_SERVER_ADDR:localhost}:9411/api/v2/spans
+
+logging:
+  config: classpath:logback.xml
+  level:
+    root: WARN
+    com.fishsoup.fishuser: DEBUG

@@ -22,3 +22,9 @@ spring:
       connect-timeout: 3000
       # 命令执行超时时间 3000 毫秒
       timeout: 3000
+
+logging:
+  config: classpath:logback.xml
+  level:
+    root: WARN
+    com.fishsoup.fishchat: DEBUG
