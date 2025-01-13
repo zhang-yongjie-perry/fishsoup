@@ -6,6 +6,7 @@ import com.fishsoup.fishweb.domain.Creation;
 import com.fishsoup.fishweb.enums.ArtworkTypeEnum;
 import com.fishsoup.fishweb.service.CreationService;
 import com.fishsoup.fishweb.util.UserUtils;
+import com.fishsoup.util.CollectionUtils;
 import com.fishsoup.util.DateUtils;
 import com.fishsoup.util.StringUtils;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +64,9 @@ public class CreationServiceImpl implements CreationService {
             if (StringUtils.hasText(creation.getContent())) {
                 update.set("content", creation.getContent());
             }
+            if (!CollectionUtils.isEmpty(creation.getTags())) {
+                update.set("tags", creation.getTags());
+            }
             update.set("time", creation.getTime());
             update.set("updateBy", creation.getUpdateBy());
             update.set("updateTime", creation.getUpdateTime());
@@ -99,9 +103,12 @@ public class CreationServiceImpl implements CreationService {
         if (Objects.nonNull(conditions) && StringUtils.hasText(conditions.getContent())) {
             criteria.and("content").regex(Pattern.compile("^.*" + conditions.getContent() + ".*$", Pattern.CASE_INSENSITIVE));
         }
+        if (!CollectionUtils.isEmpty(conditions.getTags())) {
+            criteria.and("tags").all(conditions.getTags());
+        }
         query.addCriteria(criteria);
         query.with(Sort.by(Sort.Order.desc("time")));
-        query.fields().include("_id", "title", "author", "time", "summary", "classify", "visibleRange");
+        query.fields().include("_id", "title", "author", "time", "summary", "classify", "visibleRange", "tags");
 
         // 查询所有用户
         return mongoTemplate.find(query, Creation.class);

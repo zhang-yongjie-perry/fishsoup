@@ -35,6 +35,7 @@ public class Creation implements Serializable {
     /** 可见范围 */
     private VisibleRangeEnum visibleRange;
     private String content;
+    private List<String> tags;
     private String createBy;
     @JsonFormat(pattern = DateUtils.YYYY_MM_DD_HH_MI_SS, timezone = "GMT+8")
     private Date createTime;
