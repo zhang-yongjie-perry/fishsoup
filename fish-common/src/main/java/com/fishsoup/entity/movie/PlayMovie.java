@@ -1,14 +1,14 @@
 package com.fishsoup.entity.movie;
 
 import com.fishsoup.util.StringUtils;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.util.Objects;
 
 @Data
+@ToString
+@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)

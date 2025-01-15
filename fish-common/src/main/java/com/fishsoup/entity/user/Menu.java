@@ -8,9 +8,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fishsoup.enums.UserStatusEnum;
 import com.fishsoup.enums.YesNoEnum;
 import com.fishsoup.util.DateUtils;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.util.Date;
@@ -18,6 +16,8 @@ import java.util.Date;
 import static com.baomidou.mybatisplus.annotation.IdType.ASSIGN_ID;
 
 @Data
+@ToString
+@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)

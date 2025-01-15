@@ -28,7 +28,7 @@ spring:
       url: redis://${REDIS_PASSWORD:123456}@${REDIS_ADDR:localhost}:6379/0
     mongodb:
       username: admin
-      password: 123456
+      password: "123456"
       host: ${MONGO_DB_ADDR:localhost}
       port: 27017
       database: fish
@@ -89,6 +89,13 @@ spring:
         #登录所用的用户名与密码
         login-username: fish
         login-password: 123456
+  rabbitmq:
+    host: ${RABBIT_MQ_ADDR:localhost}
+    port: 5672
+    virtual-host: /fish
+    username: fish
+    password: 123456fish
+    connection-timeout: 1s
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml

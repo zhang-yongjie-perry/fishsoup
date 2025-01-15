@@ -5,6 +5,7 @@ docker镜像地址
 "https://docker.nju.edu.cn",
 "https://docker.mirrors.ustc.edu.cn"
 
+测试环境docker启动顺序 mysql nacos mongodb seata sentinel zipkin nginx
 
 1. mysql
 版本 8.0
@@ -119,6 +120,8 @@ docker run -d --name maxkb -p 8088:8080 -v maxkb-data:/data maxkb/maxkb:latest
 docker volume create mongo-data
 docker run -d --name mongodb -p 27017:27017 -v mongo-data:/data/db mongo:latest
 
+docker run -d --name mongodb-prod -p 27018:27017 -v D:\work\production\mongodb\data:/data/db mongo:latest
+
 6. nginx
 docker run --name nginx -d -p 80:80 -v D:\work\production\nginx\conf:/etc/nginx/conf.d -v D:\work\production\nginx\html:/usr/share/nginx/html -v D:\work\production\nginx\logs:/var/log/nginx nginx:latest
 
@@ -224,3 +227,7 @@ RUN apk add --no-cache \
 
 # 设置 JAVA_HOME 环境变量
 ENV JAVA_HOME=/usr/lib/jvm/default-jvm
+
+15. RabbitMQ
+docker run -e RABBITMQ_DEFAULT_USER=MQ_admin -e RABBITMQ_DEFAULT_PASS=123456vae -v mq-plugins:/plugins --name rabbitmq -p 15672:15672 -p 5672:5672 --network fish-network -d rabbitmq:3.8-management
+

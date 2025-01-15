@@ -1,4 +1,4 @@
-package com.fishsoup.fishweb.config;
+package com.fishsoup.fishfms.config;
 
 import com.fishsoup.converter.*;
 import org.springframework.context.annotation.Bean;

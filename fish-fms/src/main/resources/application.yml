@@ -1,0 +1,39 @@
+server:
+  port: ${FISH_FMS_PORT:9007}
+  servlet:
+    context-path: /fms
+
+spring:
+  application:
+    name: fish-fms
+  data:
+    redis:
+      url: redis://${REDIS_PASSWORD:123456}@${REDIS_ADDR:localhost}:6379/0
+    mongodb:
+      # 有 uri 值则先使用 uri, 效率比较高, 没有 uri 走下面的配置, 但是注意下面的配置中 mongodb 的密码必须用双引号包裹
+      uri: mongodb://admin:123456@${MONGO_DB_ADDR:localhost}:27017/fish?authSource=fish
+#      username: admin
+      # 此处密码一定要双引号包裹, 否则会出现读取异常
+#      password: "123456"
+#      host: ${MONGO_DB_ADDR:localhost}
+#      port: 27017
+#      database: fish
+  rabbitmq:
+    host: ${RABBIT_MQ_ADDR:localhost}
+    port: 5672
+    virtual-host: /fish
+    username: fish
+    password: 123456fish
+    connection-timeout: 1s
+    listener:
+      simple:
+        prefetch: 1
+        acknowledge-mode: auto
+        # 开启重试
+        retry:
+          enabled: true
+          initial-interval: 1000ms
+          max-interval: 10000ms
+          multiplier: 1
+          max-attempts: 3
+          stateless: true

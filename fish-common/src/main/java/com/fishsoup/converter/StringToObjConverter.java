@@ -1,7 +1,7 @@
-package com.fishsoup.fishweb.converter;
+package com.fishsoup.converter;
 
-import com.fishsoup.fishweb.enums.CreationClassifyEnum;
-import com.fishsoup.fishweb.enums.VisibleRangeEnum;
+import com.fishsoup.enums.CreationClassifyEnum;
+import com.fishsoup.enums.VisibleRangeEnum;
 import org.springframework.core.convert.converter.Converter;
 
 public class StringToObjConverter implements Converter<String, Object> {

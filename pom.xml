@@ -17,6 +17,7 @@
         <module>fish-chat</module>
         <module>fish-user</module>
         <module>fish-gateway</module>
+        <module>fish-fms</module>
     </modules>
 
     <properties>
@@ -52,6 +53,7 @@
         <shedlock-provider-redis.version>6.0.2</shedlock-provider-redis.version>
         <micrometer-tracing.version>1.2.4</micrometer-tracing.version>
         <feign-micrometer.version>13.5</feign-micrometer.version>
+        <amqp.version>3.3.2</amqp.version>
     </properties>
 
     <dependencyManagement>

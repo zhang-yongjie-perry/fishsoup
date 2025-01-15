@@ -1,8 +1,9 @@
 package com.fishsoup.fishweb.service.impl;
 
+import com.fishsoup.entity.creation.Creation;
 import com.fishsoup.entity.exception.BusinessException;
+import com.fishsoup.enums.CreationClassifyEnum;
 import com.fishsoup.fishweb.annotation.FootstepLog;
-import com.fishsoup.fishweb.domain.Creation;
 import com.fishsoup.fishweb.enums.ArtworkTypeEnum;
 import com.fishsoup.fishweb.service.CreationService;
 import com.fishsoup.fishweb.util.UserUtils;
@@ -10,6 +11,16 @@ import com.fishsoup.util.CollectionUtils;
 import com.fishsoup.util.DateUtils;
 import com.fishsoup.util.StringUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RKeys;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.redisson.api.options.KeysOptions;
+import org.redisson.api.options.KeysScanOptions;
+import org.redisson.api.options.OptionalOptions;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -24,11 +35,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CreationServiceImpl implements CreationService {
 
     private final MongoTemplate mongoTemplate;
+
+    private final RabbitTemplate rabbitTemplate;
+
+    private final RedissonClient redissonClient;
 
     @Override
     public String saveCreation(Creation creation) throws BusinessException {
@@ -43,6 +59,7 @@ public class CreationServiceImpl implements CreationService {
         }
         creation.setUpdateBy(UserUtils.getLoginName());
         creation.setUpdateTime(DateUtils.now());
+        String creationId;
         if (StringUtils.hasText(creation.getId())) {
             Query query = new Query(Criteria.where("_id").is(creation.getId()));
             Update update = new Update();
@@ -75,47 +92,92 @@ public class CreationServiceImpl implements CreationService {
             update.set("updateBy", creation.getUpdateBy());
             update.set("updateTime", creation.getUpdateTime());
             mongoTemplate.updateFirst(query, update, Creation.class);
-            return creation.getId();
+            creationId = creation.getId();
+        } else {
+            creation.setCreateBy(creation.getUpdateBy());
+            creation.setCreateTime(creation.getUpdateTime());
+            creation.setTime(creation.getCreateTime());
+            creationId = mongoTemplate.insert(creation).getId();
         }
-        creation.setCreateBy(creation.getUpdateBy());
-        creation.setCreateTime(creation.getUpdateTime());
-        creation.setTime(creation.getCreateTime());
-        return mongoTemplate.insert(creation).getId();
+        new Thread(() -> rabbitTemplate.convertAndSend("amq.topic", "cache.creation", creationId)).start();
+        return creationId;
     }
 
+    /**
+     * 注意此处使用 #id 会报错, 所以使用 #p0 获取第一个参数
+     * @param id 文章id
+     * @return 文章
+     */
     @Override
     @FootstepLog(ArtworkTypeEnum.CREATION)
+    @Cacheable(value = "creation", key = "#p0")
     public Creation getCreationById(String id) {
-        Query query = new Query(Criteria.where("_id").is(id));
-        return mongoTemplate.findOne(query, Creation.class);
+        RLock fairLock = redissonClient.getFairLock("getCreationById:" + id);
+        try {
+            boolean success = fairLock.tryLock();
+            if (!success) {
+                throw new BusinessException("当前请求人数过多, 请稍后再试");
+            }
+            Query query = new Query(Criteria.where("_id").is(id));
+            return mongoTemplate.findOne(query, Creation.class);
+        } finally {
+            if (fairLock.isLocked()) {
+                fairLock.unlock();
+            }
+        }
     }
 
     @Override
+    @Cacheable(value = "creations", key = "#p0.classify + ':' + #p0 + #p1 + #p2")
     public List<Creation> listCreations(Creation conditions, int pageNum, int pageSize) {
-        // 创建分页请求
-        Pageable pageable = PageRequest.of(pageNum - 1, pageSize);
-        Query query = new Query().with(pageable);
-        Criteria criteria = new Criteria();
-        if (Objects.nonNull(conditions) && conditions.getVisibleRange() != null) {
-            criteria.and("visibleRange").is(conditions.getVisibleRange());
-        }
-        if (Objects.nonNull(conditions) && conditions.getClassify() != null) {
-            criteria.and("classify").is(conditions.getClassify());
-        }
-        if (Objects.nonNull(conditions) && StringUtils.hasText(conditions.getAuthor())) {
-            criteria.and("author").is(conditions.getAuthor());
-        }
-        if (Objects.nonNull(conditions) && StringUtils.hasText(conditions.getContent())) {
-            criteria.and("content").regex(Pattern.compile("^.*" + conditions.getContent() + ".*$", Pattern.CASE_INSENSITIVE));
-        }
-        if (!CollectionUtils.isEmpty(conditions.getTags())) {
-            criteria.and("tags").all(conditions.getTags());
-        }
-        query.addCriteria(criteria);
-        query.with(Sort.by(Sort.Order.desc("time")));
-        query.fields().include("_id", "title", "author", "time", "summary", "classify", "visibleRange", "tags");
+        RLock fairLock = redissonClient.getFairLock("listCreations:" + conditions + ":" + pageNum + ":" + pageSize);
+        try {
+            boolean success = fairLock.tryLock();
+            if (!success) {
+                throw new BusinessException("当前请求人数过多, 请稍后再试");
+            }
+            // 创建分页请求
+            Pageable pageable = PageRequest.of(pageNum - 1, pageSize);
+            Query query = new Query().with(pageable);
+            Criteria criteria = new Criteria();
+            if (Objects.nonNull(conditions) && conditions.getVisibleRange() != null) {
+                criteria.and("visibleRange").is(conditions.getVisibleRange());
+            }
+            if (Objects.nonNull(conditions) && conditions.getClassify() != null) {
+                criteria.and("classify").is(conditions.getClassify());
+            }
+            if (Objects.nonNull(conditions) && StringUtils.hasText(conditions.getAuthor())) {
+                criteria.and("author").is(conditions.getAuthor());
+            }
+            if (Objects.nonNull(conditions) && StringUtils.hasText(conditions.getContent())) {
+                criteria.and("content").regex(Pattern.compile("^.*" + conditions.getContent() + ".*$", Pattern.CASE_INSENSITIVE));
+            }
+            if (!CollectionUtils.isEmpty(conditions.getTags())) {
+                criteria.and("tags").all(conditions.getTags());
+            }
+            query.addCriteria(criteria);
+            query.with(Sort.by(Sort.Order.desc("time")));
+            query.fields().include("_id", "title", "author", "time", "summary", "classify", "visibleRange", "tags");
 
-        // 查询所有用户
-        return mongoTemplate.find(query, Creation.class);
+            // 查询所有用户
+            return mongoTemplate.find(query, Creation.class);
+        } finally {
+            if (fairLock.isLocked()) {
+                fairLock.unlock();
+            }
+        }
+    }
+
+    @Override
+    public void deleteCreationsCache(CreationClassifyEnum classify) {
+        // 因为此处将什么分类的文章改成了什么分类的文章不易获取, 所以简单的做法是将三种类型的的文章缓存全部清空
+        RKeys rkeys = redissonClient.getKeys();
+        KeysScanOptions options = KeysScanOptions.defaults()
+            .pattern("creations::*");
+        Iterable<String> keys = rkeys.getKeys(options);
+        for (String key : keys) {
+            redissonClient.getBucket(key).delete();
+        }
+        log.debug("清空文章缓存: {}", classify);
     }
 }

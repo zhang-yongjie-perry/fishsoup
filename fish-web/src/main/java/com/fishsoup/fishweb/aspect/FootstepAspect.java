@@ -1,10 +1,10 @@
 package com.fishsoup.fishweb.aspect;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.fishsoup.entity.creation.Creation;
 import com.fishsoup.entity.movie.TvMovie;
 import com.fishsoup.enums.YesNoEnum;
 import com.fishsoup.fishweb.annotation.FootstepLog;
-import com.fishsoup.fishweb.domain.Creation;
 import com.fishsoup.fishweb.domain.Footstep;
 import com.fishsoup.fishweb.enums.ArtworkTypeEnum;
 import com.fishsoup.fishweb.mapper.FootstepMapper;

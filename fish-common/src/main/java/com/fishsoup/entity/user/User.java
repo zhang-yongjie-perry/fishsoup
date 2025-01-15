@@ -9,9 +9,7 @@ import com.fishsoup.enums.OnlineStatusEnum;
 import com.fishsoup.enums.SexEnum;
 import com.fishsoup.enums.YesNoEnum;
 import com.fishsoup.util.DateUtils;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -22,6 +20,8 @@ import java.util.List;
 import static com.baomidou.mybatisplus.annotation.IdType.ASSIGN_ID;
 
 @Data
+@ToString
+@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("f_user")

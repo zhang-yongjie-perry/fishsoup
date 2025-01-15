@@ -4,15 +4,15 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fishsoup.enums.UserStatusEnum;
 import com.fishsoup.enums.YesNoEnum;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Date;
 
 import static com.baomidou.mybatisplus.annotation.IdType.ASSIGN_ID;
 
 @Data
+@ToString
+@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("f_role")

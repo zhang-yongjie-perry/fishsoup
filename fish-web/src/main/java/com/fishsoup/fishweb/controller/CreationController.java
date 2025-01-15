@@ -1,8 +1,8 @@
 package com.fishsoup.fishweb.controller;
 
+import com.fishsoup.entity.creation.Creation;
 import com.fishsoup.entity.exception.BusinessException;
 import com.fishsoup.entity.http.ResponseResult;
-import com.fishsoup.fishweb.domain.Creation;
 import com.fishsoup.fishweb.service.CreationService;
 import com.fishsoup.fishweb.service.ImageService;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,9 @@ public class CreationController {
         // 删除图片
         imageService.removeImages(creation.getToDelImages());
         // 保存文档内容
-        return ResponseResult.success("保存成功", creationService.saveCreation(creation));
+        String creationId = creationService.saveCreation(creation);
+        creationService.deleteCreationsCache(creation.getClassify());
+        return ResponseResult.success("保存成功", creationId);
     }
 
     @GetMapping("/{id}")

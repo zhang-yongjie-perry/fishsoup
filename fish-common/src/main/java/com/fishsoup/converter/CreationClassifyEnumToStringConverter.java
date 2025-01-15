@@ -1,6 +1,6 @@
-package com.fishsoup.fishweb.converter;
+package com.fishsoup.converter;
 
-import com.fishsoup.fishweb.enums.CreationClassifyEnum;
+import com.fishsoup.enums.CreationClassifyEnum;
 import org.springframework.core.convert.converter.Converter;
 
 public class CreationClassifyEnumToStringConverter implements Converter<CreationClassifyEnum, String> {

@@ -7,9 +7,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fishsoup.enums.YesNoEnum;
 import com.fishsoup.fishweb.enums.ArtworkTypeEnum;
 import com.fishsoup.util.DateUtils;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.io.Serial;
@@ -17,6 +15,8 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Data
+@ToString
+@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)
