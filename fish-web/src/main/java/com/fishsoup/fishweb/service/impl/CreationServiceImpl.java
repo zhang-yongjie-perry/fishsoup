@@ -19,6 +19,8 @@ import org.redisson.api.options.KeysOptions;
 import org.redisson.api.options.KeysScanOptions;
 import org.redisson.api.options.OptionalOptions;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
@@ -33,18 +35,25 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
 import java.util.regex.Pattern;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class CreationServiceImpl implements CreationService {
 
-    private final MongoTemplate mongoTemplate;
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
-    private final RabbitTemplate rabbitTemplate;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
-    private final RedissonClient redissonClient;
+    @Autowired
+    private RedissonClient redissonClient;
+
+    @Autowired
+    @Qualifier("commonExecutorService")
+    private ExecutorService commonExecutorService;
 
     @Override
     public String saveCreation(Creation creation) throws BusinessException {
@@ -99,7 +108,7 @@ public class CreationServiceImpl implements CreationService {
             creation.setTime(creation.getCreateTime());
             creationId = mongoTemplate.insert(creation).getId();
         }
-        new Thread(() -> rabbitTemplate.convertAndSend("amq.topic", "cache.creation", creationId)).start();
+        commonExecutorService.submit(() -> rabbitTemplate.convertAndSend("amq.topic", "cache.creation", creationId));
         return creationId;
     }
 

@@ -112,3 +112,13 @@ management:
   zipkin:
     tracing:
       endpoint: http://${ZIPKIN_SERVER_ADDR:localhost}:9411/api/v2/spans
+
+fish:
+  threads:
+    common:
+      corePoolSize: 8
+      maxPoolSize: 16
+      keepAliveTime: 60
+      queueCapacity: 500
+    scheduled:
+      corePoolSize: 16
