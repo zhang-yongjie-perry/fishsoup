@@ -18,10 +18,10 @@ public class CacheConfig {
 
         // 创建默认的 RedisCacheConfiguration，并设置全局缓存过期时间
         RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
-            // 默认全局缓存过期时间为5分钟
-            .entryTtl(Duration.ofMinutes(5))
+            // 默认全局缓存过期时间为2小时
+            .entryTtl(Duration.ofHours(2))
             // 禁止缓存 null 值
-            .disableCachingNullValues()
+//            .disableCachingNullValues()
             .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
 
         // 创建 RedisCacheManager，加载自定义的缓存配置

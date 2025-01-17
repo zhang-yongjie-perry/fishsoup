@@ -120,7 +120,7 @@ public class CreationServiceImpl implements CreationService {
         RLock lock = redissonClient.getLock("getCreationById:" + id);
         try {
             boolean success = lock.tryLock();
-            if (!success) {
+            if (success) {
                 throw new BusinessException("当前请求人数过多, 请稍后再试");
             }
             Query query = new Query(Criteria.where("_id").is(id));
