@@ -116,9 +116,9 @@ management:
 fish:
   threads:
     common:
-      corePoolSize: 8
-      maxPoolSize: 16
+      corePoolSize: 16
+      maxPoolSize: 50
       keepAliveTime: 60
-      queueCapacity: 500
+      queueCapacity: 200
     scheduled:
       corePoolSize: 16

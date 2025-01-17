@@ -10,18 +10,14 @@ import com.fishsoup.fishweb.util.UserUtils;
 import com.fishsoup.util.CollectionUtils;
 import com.fishsoup.util.DateUtils;
 import com.fishsoup.util.StringUtils;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RKeys;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.redisson.api.options.KeysOptions;
 import org.redisson.api.options.KeysScanOptions;
-import org.redisson.api.options.OptionalOptions;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,7 +31,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -52,8 +48,8 @@ public class CreationServiceImpl implements CreationService {
     private RedissonClient redissonClient;
 
     @Autowired
-    @Qualifier("commonExecutorService")
-    private ExecutorService commonExecutorService;
+    @Qualifier("scheduledExecutorService")
+    private ScheduledExecutorService scheduledExecutorService;
 
     @Override
     public String saveCreation(Creation creation) throws BusinessException {
@@ -108,7 +104,7 @@ public class CreationServiceImpl implements CreationService {
             creation.setTime(creation.getCreateTime());
             creationId = mongoTemplate.insert(creation).getId();
         }
-        commonExecutorService.submit(() -> rabbitTemplate.convertAndSend("amq.topic", "cache.creation", creationId));
+        scheduledExecutorService.execute(() -> rabbitTemplate.convertAndSend("amq.topic", "cache.creation", creationId));
         return creationId;
     }
 
@@ -121,17 +117,17 @@ public class CreationServiceImpl implements CreationService {
     @FootstepLog(ArtworkTypeEnum.CREATION)
     @Cacheable(value = "creation", key = "#p0")
     public Creation getCreationById(String id) {
-        RLock fairLock = redissonClient.getFairLock("getCreationById:" + id);
+        RLock lock = redissonClient.getLock("getCreationById:" + id);
         try {
-            boolean success = fairLock.tryLock();
+            boolean success = lock.tryLock();
             if (!success) {
                 throw new BusinessException("当前请求人数过多, 请稍后再试");
             }
             Query query = new Query(Criteria.where("_id").is(id));
             return mongoTemplate.findOne(query, Creation.class);
         } finally {
-            if (fairLock.isLocked()) {
-                fairLock.unlock();
+            if (lock.isLocked()) {
+                lock.unlock();
             }
         }
     }
@@ -139,9 +135,9 @@ public class CreationServiceImpl implements CreationService {
     @Override
     @Cacheable(value = "creations", key = "#p0.classify + ':' + #p0 + #p1 + #p2")
     public List<Creation> listCreations(Creation conditions, int pageNum, int pageSize) {
-        RLock fairLock = redissonClient.getFairLock("listCreations:" + conditions + ":" + pageNum + ":" + pageSize);
+        RLock lock = redissonClient.getLock("listCreations:" + conditions + ":" + pageNum + ":" + pageSize);
         try {
-            boolean success = fairLock.tryLock();
+            boolean success = lock.tryLock();
             if (!success) {
                 throw new BusinessException("当前请求人数过多, 请稍后再试");
             }
@@ -171,8 +167,8 @@ public class CreationServiceImpl implements CreationService {
             // 查询所有用户
             return mongoTemplate.find(query, Creation.class);
         } finally {
-            if (fairLock.isLocked()) {
-                fairLock.unlock();
+            if (lock.isLocked()) {
+                lock.unlock();
             }
         }
     }
